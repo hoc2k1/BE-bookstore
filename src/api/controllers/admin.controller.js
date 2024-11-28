@@ -446,7 +446,7 @@ exports.getAllUser = async (req, res) => {
     }
     let count = null;
     try {
-        count = await user.count({});
+        count = await user.countDocuments({});
     } catch (err) {
         console.log(err);
         res.status(500).json({ msg: err });

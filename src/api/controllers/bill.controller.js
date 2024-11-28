@@ -283,7 +283,7 @@ exports.statisticaRevenueQuauter = async (req, res) => {
 exports.getBillNoVerify = async (req, res) => {
     let count = null;
     try {
-        count = await bill.count({ issend: "99" });
+        count = await bill.countDocuments({ issend: "99" });
     } catch (err) {
         console.log(err);
         res.status(500).json({ msg: err });
@@ -312,7 +312,7 @@ exports.getBillNoVerify = async (req, res) => {
 exports.getBillVerify = async (req, res) => {
     let count = null;
     try {
-        count = await bill.count({ issend: "1" });
+        count = await bill.countDocuments({ issend: "1" });
     } catch (err) {
         console.log(err);
         res.status(500).json({ msg: err });
@@ -342,7 +342,7 @@ exports.getBillVerify = async (req, res) => {
 exports.getProcessing = async (req, res) => {
     let count = null;
     try {
-        count = await bill.count({ issend: "0" });
+        count = await bill.countDocuments({ issend: "0" });
     } catch (err) {
         console.log(err);
         res.status(500).json({ msg: err });

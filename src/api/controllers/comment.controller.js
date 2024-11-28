@@ -47,7 +47,7 @@ exports.getCommentByIDBook = async (req, res) => {
     return;
   }
   let { id_book, page } = req.body;
-  let count = await _comment.count({ id_book: id_book });
+  let count = await _comment.countDocuments({ id_book: id_book });
   let totalPage = parseInt((count - 1) / 9 + 1);
   if (parseInt(page) < 1 || parseInt(page) > totalPage) {
     res.status(200).json({ data: [], msg: "Invalid page", totalPage });

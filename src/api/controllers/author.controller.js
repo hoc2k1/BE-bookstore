@@ -20,7 +20,7 @@ exports.getAll = async (req, res) => {
     }
     let count = null;
     try {
-        count = await author.count({});
+        count = await author.countDocuments({});
     }
     catch (err) {
         console.log(err);

@@ -17,7 +17,7 @@ exports.getAll = async (req, res) => {
     }
     let count = null;
     try {
-        count = await category.count({})
+        count = await category.countDocuments({})
     }
     catch (err) {
         console.log(err);
