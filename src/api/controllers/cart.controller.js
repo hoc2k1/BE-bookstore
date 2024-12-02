@@ -160,7 +160,7 @@ exports.removeCartByIDUser = async (id_user) => {
   try {
     await cartFind.remove();
   }
-  catch(err) {
+  catch (err) {
     console.log(err);
     return false;
   }

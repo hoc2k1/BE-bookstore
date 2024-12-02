@@ -31,49 +31,49 @@ adminRouter(app);
 addressVnRouter(app);
 
 const test = () => {
-    Object.keys(data).forEach( function(k){
-        var _dic = [];
-        var _ward = [];
-         Object.keys(data[k].district).forEach(function(j) {
-            Object.keys(data[k].district[j].ward).forEach( function(l) {
-                _ward.push({
-                    name: data[k].district[j].ward[l].name,
-                    code: data[k].district[j].ward[l].code,
-                })
-            });
-            _dic.push({
-                name: data[k].district[j].name,
-                code: data[k].district[j].code,
-                ward: _ward
-            })
-            
-        });
-        const new_address = new address({
-            city: data[k].name,
-            district: _dic,
-            code: data[k].code
+  Object.keys(data).forEach(function (k) {
+    var _dic = [];
+    var _ward = [];
+    Object.keys(data[k].district).forEach(function (j) {
+      Object.keys(data[k].district[j].ward).forEach(function (l) {
+        _ward.push({
+          name: data[k].district[j].ward[l].name,
+          code: data[k].district[j].ward[l].code,
         })
-        try {
-            new_address.save()
-        }
-        catch(Err) {
-            console.log(Err)
-        }
+      });
+      _dic.push({
+        name: data[k].district[j].name,
+        code: data[k].district[j].code,
+        ward: _ward
+      })
+
     });
+    const new_address = new address({
+      city: data[k].name,
+      district: _dic,
+      code: data[k].code
+    })
+    try {
+      new_address.save()
+    }
+    catch (Err) {
+      console.log(Err)
+    }
+  });
 }
 // test();
 
 const port = process.env.PORT || 8080;
 
 mongoose.connect(process.env.MONGO_DB)
-.then(() => {
+  .then(() => {
     console.log('Connect DB successfully')
-})
-.catch((error) => {
+  })
+  .catch((error) => {
     console.log('Error connect to DB: ', error)
-})
-app.get('/', (req, res) => {res.send('welcome to fashtion_book')})
+  })
+app.get('/', (req, res) => { res.send('welcome to fashtion_book') })
 
-app.listen(port , () => {
-    console.log('Server is running in port: ', port)
+app.listen(port, () => {
+  console.log('Server is running in port: ', port)
 })
