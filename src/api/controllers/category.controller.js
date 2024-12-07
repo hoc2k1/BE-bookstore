@@ -10,6 +10,25 @@ exports.getCategory = (req, res) => {
       res.status(500).json({ error: err.message });
     });
 }
+exports.addCategory = (req, res) => {
+  if ( typeof req.body.name === "undefined" ) {
+    res.status(422).json({ msg: "Invalid data" });
+    return;
+  }
+  const { name, image } = req.body;
+  const new_category = new category({
+    name: name,
+    image: image
+  });
+  try {
+    new_category.save();
+  } catch (err) {
+    res.status(500).json({ msg: err });
+    console.log("save category fail");
+    return;
+  }
+  res.status(201).json({ msg: "success" });
+}
 exports.getAll = async (req, res) => {
   if (typeof req.params.page === 'undefined') {
     res.status(402).json({ msg: 'Data invalid' });

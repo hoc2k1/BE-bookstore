@@ -6,5 +6,6 @@ const category = new Schema({
     type: String,
     required: [true, "can't be blank"],
   },
+  image: String
 });
 module.exports = mongoose.model('category', category);

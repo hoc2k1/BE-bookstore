@@ -12,7 +12,9 @@ const commentRouter = require('./api/routers/comment.router');
 const billRouter = require('./api/routers/bill.router');
 const cartRouter = require('./api/routers/cart.router');
 const adminRouter = require('./api/routers/admin.router');
-const addressVnRouter = require('./api/routers/addres.vn.router');
+const addressRouter = require('./api/routers/addres.router');
+const bannerRouter = require('./api/routers/banner.router');
+const homeRouter = require('./api/routers/home.router');
 
 dotenv.config();
 const app = express();
@@ -24,11 +26,13 @@ categoryRouter(app);
 publisherRouter(app);
 bookRouter(app);
 authorRouter(app);
-commentRouter(app)
+commentRouter(app);
 billRouter(app);
 cartRouter(app);
 adminRouter(app);
-addressVnRouter(app);
+addressRouter(app);
+bannerRouter(app);
+homeRouter(app);
 
 const test = () => {
   Object.keys(data).forEach(function (k) {
