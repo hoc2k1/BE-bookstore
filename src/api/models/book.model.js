@@ -25,6 +25,14 @@ const book = new Schema({
     type: String,
     required: [true, "can't be blank"],
   },
+  count: {
+    type: Number,
+    required: [true, "can't be blank"],
+  },
+  available: {
+    type: Boolean,
+    required: [true, "can't be blank"],
+  },
   describe: {
     type: String,
     default: "",

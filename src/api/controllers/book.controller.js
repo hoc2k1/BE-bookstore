@@ -3,11 +3,12 @@ const book = require('../models/book.model');
 const publisherController = require('../controllers/publisher.controller');
 const authorController = require('../controllers/author.controller');
 const categoryController = require('../controllers/category.controller');
+const NUMBER_BOOK_PER_PAGE = 30
 
 exports.getTotalPage = (req, res) => {
   book.find({})
     .then(docs => {
-      res.status(200).json({ data: parseInt((docs.length - 1) / 9) + 1 })
+      res.status(200).json({ data: parseInt((docs.length - 1) / NUMBER_BOOK_PER_PAGE) + 1 })
     })
     .catch(err => {
       console.log(err);
@@ -22,28 +23,50 @@ exports.getAllBook = async (req, res) => {
   }
   //Khoang gia
   let range = null;
-  let objRange = null;
-  if (typeof req.body.range !== 'undefined') {
+  if (req.body.range) {
     range = req.body.range;
-    //objRange = JSON.parse(range);
-    objRange = range;
   }
   //Search Text
-  let searchText = "";
-  if (typeof req.body.searchtext !== 'undefined') {
-    searchText = req.body.searchtext;
+  let searchText = req.body.searchtext ? req.body.searchtext : "";
+  let searchPublisher;
+  let searchAuthor;
+  let searchCategory;
+  if (!req.body.searchPublisher && !req.body.searchCategory && !req.body.searchAuthor) {
+    searchPublisher = await publisherController.getIDBySearchText(searchText);
+    searchAuthor = await authorController.getIDBySearchText(searchText);
+    searchCategory = await categoryController.getIDBySearchText(searchText);
   }
-  let searchPublisher = null;
-  searchPublisher = await publisherController.getIDBySearchText(searchText);
-  let searchAuthor = null;
-  searchAuthor = await authorController.getIDBySearchText(searchText);
-  let searchCategory = null;
-  searchCategory = await categoryController.getIDBySearchText(searchText);
+  else {
+    if (req.body.searchPublisher) {
+      searchPublisher = Array.isArray(req.body.searchPublisher) ? req.body.searchPublisher : [req.body.searchPublisher];
+    }
+    if (req.body.searchAuthor) {
+      searchAuthor = Array.isArray(req.body.searchAuthor) ? req.body.searchAuthor : [req.body.searchAuthor];
+    }
+    if (req.body.searchCategory) {
+      searchCategory = Array.isArray(req.body.searchCategory) ? req.body.searchCategory : [req.body.searchCategory];
+    }
+  }
+
+  let conditions = [];
+  if (searchText) {
+    conditions.push({ name: new RegExp(searchText, "i") })
+  }
+  if (searchPublisher) {
+    conditions.push({ id_nsx: { $in: searchPublisher } })
+  }
+  if (searchAuthor) {
+    conditions.push({ id_author: { $in: searchAuthor } })
+  }
+  if (searchCategory) {
+    conditions.push({ id_category: { $in: searchCategory } })
+  }
+
   //Sap xep
   let sortType = "release_date";
   let sortOrder = "-1";
-  if (typeof req.body.sorttype !== 'undefined') {
-    sortType = req.body.sorttype;
+  if (typeof req.body.sortType !== 'undefined') {
+    sortType = req.body.sortType;
   }
   if (typeof req.body.sortorder !== 'undefined') {
     sortOrder = req.body.sortorder;
@@ -64,18 +87,22 @@ exports.getAllBook = async (req, res) => {
   let bookCount = null;
   try {
     if (range !== null) {
-      bookCount = await book
-        .countDocuments({ $or: [{ name: new RegExp(searchText, "i") }, { id_nsx: { $in: searchPublisher } }, { id_author: { $in: searchAuthor } }, { id_category: { $in: searchCategory } }], price: { $gte: objRange.low, $lte: objRange.high } });
+      bookCount = await book.countDocuments({ 
+        $or: conditions,
+        price: { $gte: range.low, $lte: range.high } 
+      });
     }
     else {
-      bookCount = await book.countDocuments({ $or: [{ name: new RegExp(searchText, "i") }, { id_nsx: { $in: searchPublisher } }, { id_author: { $in: searchAuthor } }, { id_category: { $in: searchCategory } }] });
+      bookCount = await book.countDocuments({ 
+        $or: conditions
+      });
     }
   }
   catch (err) {
     res.status(500).json({ error: err.message });
     return;
   }
-  let totalPage = parseInt(((bookCount - 1) / 9) + 1);
+  let totalPage = parseInt(((bookCount - 1) / NUMBER_BOOK_PER_PAGE) + 1);
   let { page } = req.body;
   if ((parseInt(page) < 1) || (parseInt(page) > totalPage)) {
     res.status(200).json({ data: [], msg: 'Invalid page', totalPage });
@@ -88,7 +115,10 @@ exports.getAllBook = async (req, res) => {
   if (range !== null) {
     try {
       const docs = await book
-        .find({ $or: [{ name: new RegExp(searchText, "i") }, { id_nsx: { $in: searchPublisher } }, { id_author: { $in: searchAuthor } }, { id_category: { $in: searchCategory } }], price: { $gte: objRange.low, $lte: objRange.high } })
+        .find({ 
+          $or: conditions, 
+          price: { $gte: range.low, $lte: range.high } 
+        })
         .skip(9 * (parseInt(page) - 1))
         .limit(9)
         .sort(sortQuery)
@@ -100,12 +130,11 @@ exports.getAllBook = async (req, res) => {
       console.log(err);
       res.status(500).json({ msg: err.message });
     }
-
   }
   else {
     try {
       const docs = await book
-        .find({ $or: [{ name: new RegExp(searchText, "i") }, { id_nsx: { $in: searchPublisher } }, { id_author: { $in: searchAuthor } }, { id_category: { $in: searchCategory } }] })
+        .find({ $or: conditions })
         .skip(9 * (parseInt(page) - 1))
         .limit(9)
         .sort(sortQuery)
@@ -143,7 +172,7 @@ exports.getBookByPublisher = async (req, res) => {
   let sortType = "release_date";
   let sortOrder = "-1";
   if (typeof req.body.sorttype !== 'undefined') {
-    sortType = req.body.sorttype;
+    sortType = req.body.sortType;
   }
   if (typeof req.body.sortorder !== 'undefined') {
     sortOrder = req.body.sortorder;
@@ -175,7 +204,7 @@ exports.getBookByPublisher = async (req, res) => {
     res.status(500).json({ msg: err });
     return;
   }
-  let totalPage = parseInt(((bookCount - 1) / 9) + 1);
+  let totalPage = parseInt(((bookCount - 1) / NUMBER_BOOK_PER_PAGE) + 1);
   if ((parseInt(page) < 1) || (parseInt(page) > totalPage)) {
     res.status(200).json({ data: [], msg: 'Invalid page', totalPage });
     return;
@@ -210,8 +239,6 @@ exports.getBookByPublisher = async (req, res) => {
       console.log(err);
       res.status(500).json({ error: err.message });
     }
-
-
   }
 }
 
@@ -238,8 +265,8 @@ exports.getBookByCategory = async (req, res) => {
   //Sap xep
   let sortType = "release_date";
   let sortOrder = "-1";
-  if (typeof req.body.sorttype !== 'undefined') {
-    sortType = req.body.sorttype;
+  if (typeof req.body.sortType !== 'undefined') {
+    sortType = req.body.sortType;
   }
   if (typeof req.body.sortorder !== 'undefined') {
     sortOrder = req.body.sortorder;
@@ -270,7 +297,7 @@ exports.getBookByCategory = async (req, res) => {
     return;
   }
   bookCount = bookFind.length;
-  let totalPage = parseInt(((bookCount - 1) / 9) + 1);
+  let totalPage = parseInt(((bookCount - 1) / NUMBER_BOOK_PER_PAGE) + 1);
   if (parseInt(page) < 1 || parseInt(page) > totalPage) {
     res.status(200).json({ data: [], msg: 'Invalid page', totalPage: totalPage });
     return;
@@ -331,8 +358,8 @@ exports.getBookByAuthor = async (req, res) => {
   //Sap xep
   let sortType = "release_date";
   let sortOrder = "-1";
-  if (typeof req.body.sorttype !== 'undefined') {
-    sortType = req.body.sorttype;
+  if (typeof req.body.sortType !== 'undefined') {
+    sortType = req.body.sortType;
   }
   if (typeof req.body.sortorder !== 'undefined') {
     sortOrder = req.body.sortorder;
@@ -366,7 +393,7 @@ exports.getBookByAuthor = async (req, res) => {
     return;
   }
   bookCount = bookFind.length;
-  let totalPage = parseInt(((bookCount - 1) / 9) + 1);
+  let totalPage = parseInt(((bookCount - 1) / NUMBER_BOOK_PER_PAGE) + 1);
   if (parseInt(page) < 1 || parseInt(page) > totalPage) {
     res.status(200).json({ data: [], msg: 'Invalid page', totalPage: totalPage });
     return;
