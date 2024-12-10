@@ -27,7 +27,7 @@ exports.getAllBook = async (req, res) => {
     range = req.body.range;
   }
   //Search Text
-  let searchText = req.body.searchtext ? req.body.searchtext : "";
+  let searchText = req.body.searchText ? req.body.searchText : "";
   let searchPublisher;
   let searchAuthor;
   let searchCategory;
@@ -68,12 +68,13 @@ exports.getAllBook = async (req, res) => {
   if (typeof req.body.sortType !== 'undefined') {
     sortType = req.body.sortType;
   }
-  if (typeof req.body.sortorder !== 'undefined') {
-    sortOrder = req.body.sortorder;
+  if (typeof req.body.sortOrder !== 'undefined') {
+    sortOrder = req.body.sortOrder;
   }
   if ((sortType !== "price")
     && (sortType !== "release_date")
     && (sortType !== "view_counts")
+    && (sortType !== "name")
     && (sortType !== "sales")) {
     res.status(422).json({ msg: 'Invalid sort type' });
     return;
@@ -119,12 +120,11 @@ exports.getAllBook = async (req, res) => {
           $or: conditions, 
           price: { $gte: range.low, $lte: range.high } 
         })
-        .skip(9 * (parseInt(page) - 1))
-        .limit(9)
+        .skip(NUMBER_BOOK_PER_PAGE * (parseInt(page) - 1))
+        .limit(NUMBER_BOOK_PER_PAGE)
         .sort(sortQuery)
 
       res.status(200).json({ data: docs, totalPage });
-
     }
     catch (err) {
       console.log(err);
@@ -135,8 +135,8 @@ exports.getAllBook = async (req, res) => {
     try {
       const docs = await book
         .find({ $or: conditions })
-        .skip(9 * (parseInt(page) - 1))
-        .limit(9)
+        .skip(NUMBER_BOOK_PER_PAGE * (parseInt(page) - 1))
+        .limit(NUMBER_BOOK_PER_PAGE)
         .sort(sortQuery)
 
       res.status(200).json({ data: docs, totalPage });
@@ -165,21 +165,22 @@ exports.getBookByPublisher = async (req, res) => {
   }
   //Search Text
   let searchText = "";
-  if (typeof req.body.searchtext !== 'undefined') {
-    searchText = req.body.searchtext;
+  if (typeof req.body.searchText !== 'undefined') {
+    searchText = req.body.searchText;
   }
   //Sap xep
   let sortType = "release_date";
   let sortOrder = "-1";
-  if (typeof req.body.sorttype !== 'undefined') {
+  if (typeof req.body.sortType !== 'undefined') {
     sortType = req.body.sortType;
   }
-  if (typeof req.body.sortorder !== 'undefined') {
-    sortOrder = req.body.sortorder;
+  if (typeof req.body.sortOrder !== 'undefined') {
+    sortOrder = req.body.sortOrder;
   }
   if ((sortType !== "price")
     && (sortType !== "release_date")
     && (sortType !== "view_counts")
+    && (sortType !== "name")
     && (sortType !== "sales")) {
     res.status(422).json({ msg: 'Invalid sort type' });
     return;
@@ -216,8 +217,8 @@ exports.getBookByPublisher = async (req, res) => {
   if (range !== null) {
     try {
       const docs = await book.find({ name: new RegExp(searchText, "i"), id_nsx: id, price: { $gte: objRange.low, $lte: objRange.high } })
-        .skip(9 * (parseInt(page) - 1))
-        .limit(9)
+        .skip(NUMBER_BOOK_PER_PAGE * (parseInt(page) - 1))
+        .limit(NUMBER_BOOK_PER_PAGE)
         .sort(sortQuery)
 
       res.status(200).json({ data: docs, totalPage });
@@ -230,8 +231,8 @@ exports.getBookByPublisher = async (req, res) => {
   else {
     try {
       const docs = await book.find({ name: new RegExp(searchText, "i"), id_nsx: id })
-        .skip(9 * (parseInt(page) - 1))
-        .limit(9)
+        .skip(NUMBER_BOOK_PER_PAGE * (parseInt(page) - 1))
+        .limit(NUMBER_BOOK_PER_PAGE)
         .sort(sortQuery)
       res.status(200).json({ data: docs, totalPage });
     }
@@ -259,8 +260,8 @@ exports.getBookByCategory = async (req, res) => {
   }
   //Kiem tra text
   let searchText = "";
-  if (typeof req.body.searchtext !== 'undefined') {
-    searchText = req.body.searchtext;
+  if (typeof req.body.searchText !== 'undefined') {
+    searchText = req.body.searchText;
   }
   //Sap xep
   let sortType = "release_date";
@@ -268,12 +269,13 @@ exports.getBookByCategory = async (req, res) => {
   if (typeof req.body.sortType !== 'undefined') {
     sortType = req.body.sortType;
   }
-  if (typeof req.body.sortorder !== 'undefined') {
-    sortOrder = req.body.sortorder;
+  if (typeof req.body.sortOrder !== 'undefined') {
+    sortOrder = req.body.sortOrder;
   }
   if ((sortType !== "price")
     && (sortType !== "release_date")
     && (sortType !== "view_counts")
+    && (sortType !== "name")
     && (sortType !== "sales")) {
     res.status(422).json({ msg: 'Invalid sort type' });
     return;
@@ -309,8 +311,8 @@ exports.getBookByCategory = async (req, res) => {
   if (range === null) {
     try {
       const docs = await book.find({ id_category: id, name: new RegExp(searchText, "i") })
-        .limit(9)
-        .skip(9 * (page - 1))
+        .limit(NUMBER_BOOK_PER_PAGE)
+        .skip(NUMBER_BOOK_PER_PAGE * (page - 1))
         .sort(sortQuery)
 
       res.status(200).json({ data: docs, totalPage: totalPage });
@@ -322,8 +324,8 @@ exports.getBookByCategory = async (req, res) => {
   } else {
     try {
       const docs = await book.find({ id_category: id, name: new RegExp(searchText, "i"), price: { $gte: objRange.low, $lte: objRange.high } })
-        .limit(9)
-        .skip(9 * (page - 1))
+        .limit(NUMBER_BOOK_PER_PAGE)
+        .skip(NUMBER_BOOK_PER_PAGE * (page - 1))
         .sort(sortQuery)
 
       res.status(200).json({ data: docs, totalPage: totalPage });
@@ -352,8 +354,8 @@ exports.getBookByAuthor = async (req, res) => {
   }
   //Kiem tra text
   let searchText = "";
-  if (typeof req.body.searchtext !== 'undefined') {
-    searchText = req.body.searchtext;
+  if (typeof req.body.searchText !== 'undefined') {
+    searchText = req.body.searchText;
   }
   //Sap xep
   let sortType = "release_date";
@@ -361,12 +363,13 @@ exports.getBookByAuthor = async (req, res) => {
   if (typeof req.body.sortType !== 'undefined') {
     sortType = req.body.sortType;
   }
-  if (typeof req.body.sortorder !== 'undefined') {
-    sortOrder = req.body.sortorder;
+  if (typeof req.body.sortOrder !== 'undefined') {
+    sortOrder = req.body.sortOrder;
   }
   if ((sortType !== "price")
     && (sortType !== "release_date")
     && (sortType !== "view_counts")
+    && (sortType !== "name")
     && (sortType !== "sales")) {
     res.status(422).json({ msg: 'Invalid sort type' });
     return;
@@ -402,8 +405,8 @@ exports.getBookByAuthor = async (req, res) => {
   if (typeof req.body.range === 'undefined') {
     try {
       const docs = await book.find({ id_author: id, name: new RegExp(searchText, "i") })
-        .limit(9)
-        .skip(9 * (page - 1))
+        .limit(NUMBER_BOOK_PER_PAGE)
+        .skip(NUMBER_BOOK_PER_PAGE * (page - 1))
         .sort(sortQuery)
 
       res.status(200).json({ data: docs, totalPage: totalPage });
@@ -417,8 +420,8 @@ exports.getBookByAuthor = async (req, res) => {
   } else {
     try {
       const docs = await book.find({ id_author: id, name: new RegExp(searchText, "i"), price: { $gte: objRange.low, $lte: objRange.high } })
-        .limit(9)
-        .skip(9 * (page - 1))
+        .limit(NUMBER_BOOK_PER_PAGE)
+        .skip(NUMBER_BOOK_PER_PAGE * (page - 1))
         .sort(sortQuery)
 
       res.status(200).json({ data: docs, totalPage: totalPage });
