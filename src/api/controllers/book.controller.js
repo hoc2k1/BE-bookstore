@@ -31,19 +31,19 @@ exports.getAllBook = async (req, res) => {
   let searchPublisher;
   let searchAuthor;
   let searchCategory;
-  if (!req.body.searchPublisher && !req.body.searchCategory && !req.body.searchAuthor) {
+  if ((!req.body.searchPublisher || req.body.searchPublisher.length  == 0) && (!req.body.searchCategory || req.body.searchCategory.length == 0 ) && (!req.body.searchAuthor || req.body.searchAuthor.length == 0 )) {
     searchPublisher = await publisherController.getIDBySearchText(searchText);
     searchAuthor = await authorController.getIDBySearchText(searchText);
     searchCategory = await categoryController.getIDBySearchText(searchText);
   }
   else {
-    if (req.body.searchPublisher) {
+    if (req.body.searchPublisher && req.body.searchPublisher.length > 0) {
       searchPublisher = Array.isArray(req.body.searchPublisher) ? req.body.searchPublisher : [req.body.searchPublisher];
     }
-    if (req.body.searchAuthor) {
+    if (req.body.searchAuthor && req.body.searchAuthor.length > 0) {
       searchAuthor = Array.isArray(req.body.searchAuthor) ? req.body.searchAuthor : [req.body.searchAuthor];
     }
-    if (req.body.searchCategory) {
+    if (req.body.searchCategory && req.body.searchCategory.length > 0) {
       searchCategory = Array.isArray(req.body.searchCategory) ? req.body.searchCategory : [req.body.searchCategory];
     }
   }
