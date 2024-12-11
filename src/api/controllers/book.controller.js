@@ -23,8 +23,8 @@ exports.getAllBook = async (req, res) => {
   }
   //Khoang gia
   let range = null;
-  if (req.body.range) {
-    range = req.body.range;
+  if (req.body.objRange) {
+    range = req.body.objRange;
   }
   //Search Text
   let searchText = req.body.searchText ? req.body.searchText : "";

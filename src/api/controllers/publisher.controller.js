@@ -72,7 +72,7 @@ exports.getIDBySearchText = async (searchText) => {
       .find({ name: new RegExp(searchText, "i") }, { name: 0 })
   }
   catch (err) {
-    res.status(500).json({ msg: err });
+    console.log('error: ', err)
     return;
   }
   return arr.map(i => i.id);
