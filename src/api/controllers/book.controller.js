@@ -89,13 +89,13 @@ exports.getAllBook = async (req, res) => {
   try {
     if (range !== null) {
       bookCount = await book.countDocuments({ 
-        $or: conditions,
+        $and: conditions,
         price: { $gte: range.low, $lte: range.high } 
       });
     }
     else {
       bookCount = await book.countDocuments({ 
-        $or: conditions
+        $and: conditions
       });
     }
   }
@@ -103,7 +103,7 @@ exports.getAllBook = async (req, res) => {
     res.status(500).json({ error: err.message });
     return;
   }
-  let totalPage = parseInt(((bookCount - 1) / NUMBER_BOOK_PER_PAGE) + 1);
+  let totalPage = bookCount ? parseInt(((bookCount - 1) / NUMBER_BOOK_PER_PAGE) + 1) : 1;
   let { page } = req.body;
   if ((parseInt(page) < 1) || (parseInt(page) > totalPage)) {
     res.status(200).json({ data: [], msg: 'Invalid page', totalPage });
@@ -117,7 +117,7 @@ exports.getAllBook = async (req, res) => {
     try {
       const docs = await book
         .find({ 
-          $or: conditions, 
+          $and: conditions, 
           price: { $gte: range.low, $lte: range.high } 
         })
         .skip(NUMBER_BOOK_PER_PAGE * (parseInt(page) - 1))
@@ -134,7 +134,7 @@ exports.getAllBook = async (req, res) => {
   else {
     try {
       const docs = await book
-        .find({ $or: conditions })
+        .find({ $and: conditions })
         .skip(NUMBER_BOOK_PER_PAGE * (parseInt(page) - 1))
         .limit(NUMBER_BOOK_PER_PAGE)
         .sort(sortQuery)
