@@ -22,8 +22,7 @@ const book = new Schema({
     default: new Date()
   },
   img: {
-    type: String,
-    required: [true, "can't be blank"],
+    type: Array
   },
   count: {
     type: Number,
