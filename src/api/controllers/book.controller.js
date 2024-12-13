@@ -85,9 +85,28 @@ exports.getAllBook = async (req, res) => {
   let bookCount = null;
   try {
     if (range !== null) {
-      bookCount = await book.countDocuments({ 
-        $and: conditions,
-        price: { $gte: range.low, $lte: range.high } 
+      bookCount = await book.countDocuments({
+        $and: [
+          ...conditions,
+          {
+            $expr: {
+              $and: [
+                {
+                  $gte: [
+                    { $subtract: ['$price', { $multiply: ['$price', { $divide: ['$sales', 100] }] }] },
+                    range.low,
+                  ],
+                },
+                {
+                  $lte: [
+                    { $subtract: ['$price', { $multiply: ['$price', { $divide: ['$sales', 100] }] }] },
+                    range.high,
+                  ],
+                },
+              ],
+            },
+          }
+        ]
       });
     }
     else {
@@ -114,8 +133,27 @@ exports.getAllBook = async (req, res) => {
     try {
       const docs = await book
         .find({ 
-          $and: conditions, 
-          price: { $gte: range.low, $lte: range.high } 
+          $and: [
+          ...conditions,
+          {
+            $expr: {
+              $and: [
+                {
+                  $gte: [
+                    { $subtract: ['$price', { $multiply: ['$price', { $divide: ['$sales', 100] }] }] },
+                    range.low,
+                  ],
+                },
+                {
+                  $lte: [
+                    { $subtract: ['$price', { $multiply: ['$price', { $divide: ['$sales', 100] }] }] },
+                    range.high,
+                  ],
+                },
+              ],
+            },
+          }
+        ]
         })
         .skip(NUMBER_BOOK_PER_PAGE * (parseInt(page) - 1))
         .limit(NUMBER_BOOK_PER_PAGE)
@@ -164,11 +202,13 @@ exports.getBookByID = async (req, res) => {
     return;
   }
   result.view_counts = result.view_counts + 1;
-  result.save((err, docs) => {
-    if (err) {
-      console.log(err);
-    }
-  });
+  result.save()
+    .then(res1 => {
+      console.log('');
+    })
+    .catch(error => {
+      console.error('Error saving document:', error);
+    });
   res.status(200).json({ data: result })
 }
 

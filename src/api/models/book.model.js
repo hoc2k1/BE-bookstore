@@ -25,8 +25,7 @@ const book = new Schema({
     type: Array
   },
   count: {
-    type: Number,
-    required: [true, "can't be blank"],
+    type: Number
   },
   available: {
     type: Boolean,
@@ -56,7 +55,9 @@ const book = new Schema({
     type: Number,
     default: 0,
     validate: {
-      validator: Number.isInteger,
+      validator: function (value) {
+        return Number.isInteger(value) && value >= 0 && value <= 100;
+      },
       message: '{VALUE} is not an integer value'
     }
   }
