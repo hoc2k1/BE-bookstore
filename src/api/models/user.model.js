@@ -19,12 +19,6 @@ const user = new Schema({
     type: String,
     required: [true, "can't be blank"],
   },
-  address: {
-    type: String,
-  },
-  phone_number: {
-    type: String,
-  },
   is_admin: {
     type: Boolean,
     default: false,

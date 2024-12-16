@@ -1,5 +1,7 @@
 'use strict'
 const jwt = require('jsonwebtoken');
+const secret_key="mot_store"
+
 exports.verify = async (req, res) => {
   if (typeof req.body.token === 'undefined'
     || typeof req.body.email === 'undefined') {
@@ -10,16 +12,24 @@ exports.verify = async (req, res) => {
   let token = req.body.token;
   let email = req.body.email;
   try {
-    let decoded = await jwt.verify(token, 'shhhhh')
-    if (decoded.email == email) {
-      res.status(200).json({ msg: 'success' });
-      return;
-    }
-    res
+    await jwt.verify(token, secret_key, (err, decoded) => {
+      if (err) {
+        if (err.name === 'TokenExpiredError') {
+          res.status(200).json({ error: 'expirated' });
+          return;
+        } else {
+          console.log("Token không hợp lệ:", err);
+        }
+      } else {
+        if (decoded.email == email) {
+          res.status(200).json({ msg: 'success' });
+          return;
+        }
+      }
+    });
   }
   catch (err) {
     res.status(404).json({ msg: 'unsuccess' });
     return
   }
-  res.status(404).json({ msg: 'unsuccess' });
 }

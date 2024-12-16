@@ -6,19 +6,19 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const otp = require("../utils/otp");
 
+const secret_key="mot_store"
+
 exports.register = async (req, res) => {
   if (
     typeof req.body.email === "undefined" ||
     typeof req.body.password === "undefined" ||
     typeof req.body.firstName === "undefined" ||
-    typeof req.body.lastName === "undefined" ||
-    typeof req.body.address === "undefined" ||
-    typeof req.body.phone_number === "undefined"
+    typeof req.body.lastName === "undefined"
   ) {
     res.status(422).json({ msg: "Invalid data" });
     return;
   }
-  let { email, password, firstName, lastName, address, phone_number } =
+  let { email, password, firstName, lastName } =
     req.body;
   if (
     (email.indexOf("@") === -1 && email.indexOf(".") === -1) ||
@@ -38,20 +38,18 @@ exports.register = async (req, res) => {
     res.status(409).json({ msg: "Email already exist" });
     return;
   }
-  const token = randomstring.generate();
-  // let sendEmail = await nodemailer.sendEmail(email, token);
-  // if (!sendEmail) {
-  //     res.status(500).json({ msg: 'Send email fail' });
-  //     return;
-  // }
+  const token = jwt.sign(
+    { email: email },
+    secret_key,
+    { expiresIn: '7d' }
+  );
   password = bcrypt.hashSync(password, 10);
   const newUser = new user({
     email: email,
+    is_verify: true,
     firstName: firstName,
     lastName: lastName,
     password: password,
-    address: address,
-    phone_number: phone_number,
     token: token,
   });
   try {
@@ -62,36 +60,6 @@ exports.register = async (req, res) => {
     return;
   }
   res.status(201).json({ msg: "success" });
-};
-
-exports.verifyAccount = async (req, res) => {
-  if (typeof req.params.token === "undefined") {
-    res.status(402).json({ msg: "!invalid" });
-    return;
-  }
-  let token = req.params.token;
-  let tokenFind = null;
-  try {
-    tokenFind = await user.findOne({ token: token });
-  } catch (err) {
-    res.status(500).json({ msg: err });
-    return;
-  }
-  if (tokenFind == null) {
-    res.status(404).json({ msg: "not found!!!" });
-    return;
-  }
-  try {
-    await user.findByIdAndUpdate(
-      tokenFind._id,
-      { $set: { is_verify: true } },
-      { new: true }
-    );
-  } catch (err) {
-    res.status(500).json({ msg: err });
-    return;
-  }
-  res.status(200).json({ msg: "success!" });
 };
 
 exports.login = async (req, res) => {
@@ -124,10 +92,18 @@ exports.login = async (req, res) => {
     res.status(422).json({ msg: "Invalid data" });
     return;
   }
-  let token = jwt.sign(
-    { email: email, iat: Math.floor(Date.now() / 1000) - 60 * 30 },
-    "shhhhh"
+  const token = jwt.sign(
+    { email: email },
+    secret_key,
+    { expiresIn: '7d' }
   );
+  userFind.token = token;
+  try {
+    await userFind.save();
+  } catch (err) {
+    res.status(500).json({ msg: err });
+    return;
+  }
   res.status(200).json({
     msg: "success",
     token: token,
@@ -135,8 +111,7 @@ exports.login = async (req, res) => {
       email: userFind.email,
       firstName: userFind.firstName,
       lastName: userFind.lastName,
-      address: userFind.address,
-      phone_number: userFind.phone_number,
+      is_verify: userFind.is_verify,
       id: userFind._id,
     },
   });
@@ -162,12 +137,11 @@ exports.requestForgotPassword = async (req, res) => {
     res.status(401).json({ msg: "no_registration_confirmation" });
     return;
   }
-  let token = otp.generateOTP();
-  //   let sendEmail = await nodemailer.sendEmailForgotPassword(email, token);
-  //   if (!sendEmail) {
-  //     res.status(500).json({ msg: "Send email fail" });
-  //     return;
-  //   }
+  const token = jwt.sign(
+    { email: email },
+    secret_key,
+    { expiresIn: '7d' }
+  );
   userFind.token = token;
   try {
     await userFind.save();
@@ -176,34 +150,6 @@ exports.requestForgotPassword = async (req, res) => {
     return;
   }
   res.status(201).json({ msg: "success", email: email });
-};
-
-exports.verifyForgotPassword = async (req, res) => {
-  if (
-    typeof req.body.email === "undefined" ||
-    typeof req.body.otp === "undefined"
-  ) {
-    res.status(402).json({ msg: "Invalid data" });
-    return;
-  }
-
-  let { email, otp } = req.body;
-  let userFind = null;
-  try {
-    userFind = await user.findOne({ email: email });
-  } catch (err) {
-    res.json({ msg: err });
-    return;
-  }
-  if (userFind == null) {
-    res.status(422).json({ msg: "Invalid data" });
-    return;
-  }
-  if (userFind.token != otp) {
-    res.status(422).json({ msg: "OTP fail" });
-    return;
-  }
-  res.status(200).json({ msg: "success", otp: otp });
 };
 
 exports.forgotPassword = async (req, res) => {
@@ -247,14 +193,12 @@ exports.updateInfor = async (req, res) => {
   if (
     typeof req.body.firstName === "undefined" ||
     typeof req.body.lastName === "undefined" ||
-    typeof req.body.address === "undefined" ||
-    typeof req.body.phone_number === "undefined" ||
     typeof req.body.email === "undefined"
   ) {
     res.status(422).json({ msg: "Invalid data" });
     return;
   }
-  let { email, firstName, lastName, address, phone_number } = req.body;
+  let { email, firstName, lastName } = req.body;
   let userFind;
   try {
     userFind = await user.findOne({ email: email });
@@ -268,15 +212,17 @@ exports.updateInfor = async (req, res) => {
   }
   userFind.firstName = firstName;
   userFind.lastName = lastName;
-  userFind.address = address;
-  userFind.phone_number = phone_number;
   try {
     await userFind.save();
   } catch (err) {
     res.status(500).json({ msg: err });
     return;
   }
-  let token = jwt.sign({ email: email }, "shhhhh");
+  const token = jwt.sign(
+    { email: email },
+    secret_key,
+    { expiresIn: '7d' }
+  );
   res.status(200).json({
     msg: "success",
     token: token,
@@ -284,8 +230,6 @@ exports.updateInfor = async (req, res) => {
       email: userFind.email,
       firstName: userFind.firstName,
       lastName: userFind.lastName,
-      address: userFind.address,
-      phone_number: userFind.phone_number,
       id: userFind._id,
     },
   });

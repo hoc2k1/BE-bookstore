@@ -1,6 +1,7 @@
 'use strict'
 const book = require('../models/book.model');
 const NUMBER_BOOK_PER_PAGE = 24
+const NUMBER_RELATED_BOOK = 8
 
 exports.getTotalPage = (req, res) => {
   book.find({})
@@ -28,7 +29,7 @@ exports.getAllBook = async (req, res) => {
   let searchPublisher;
   let searchAuthor;
   let searchCategory;
-  if ((!req.body.searchPublisher || req.body.searchPublisher.length  == 0) && (!req.body.searchCategory || req.body.searchCategory.length == 0 ) && (!req.body.searchAuthor || req.body.searchAuthor.length == 0 )) {
+  if ((!req.body.searchPublisher || req.body.searchPublisher.length == 0) && (!req.body.searchCategory || req.body.searchCategory.length == 0) && (!req.body.searchAuthor || req.body.searchAuthor.length == 0)) {
     searchPublisher = null
     searchAuthor = null
     searchCategory = null
@@ -110,7 +111,7 @@ exports.getAllBook = async (req, res) => {
       });
     }
     else {
-      bookCount = await book.countDocuments({ 
+      bookCount = await book.countDocuments({
         $and: conditions
       });
     }
@@ -132,28 +133,28 @@ exports.getAllBook = async (req, res) => {
   if (range !== null) {
     try {
       const docs = await book
-        .find({ 
+        .find({
           $and: [
-          ...conditions,
-          {
-            $expr: {
-              $and: [
-                {
-                  $gte: [
-                    { $subtract: ['$price', { $multiply: ['$price', { $divide: ['$sales', 100] }] }] },
-                    range.low,
-                  ],
-                },
-                {
-                  $lte: [
-                    { $subtract: ['$price', { $multiply: ['$price', { $divide: ['$sales', 100] }] }] },
-                    range.high,
-                  ],
-                },
-              ],
-            },
-          }
-        ]
+            ...conditions,
+            {
+              $expr: {
+                $and: [
+                  {
+                    $gte: [
+                      { $subtract: ['$price', { $multiply: ['$price', { $divide: ['$sales', 100] }] }] },
+                      range.low,
+                    ],
+                  },
+                  {
+                    $lte: [
+                      { $subtract: ['$price', { $multiply: ['$price', { $divide: ['$sales', 100] }] }] },
+                      range.high,
+                    ],
+                  },
+                ],
+              },
+            }
+          ]
         })
         .skip(NUMBER_BOOK_PER_PAGE * (parseInt(page) - 1))
         .limit(NUMBER_BOOK_PER_PAGE)
@@ -232,12 +233,69 @@ exports.getRelatedBook = async (req, res) => {
     return;
   }
   try {
-    const docs = await book
-      .find({ $or: [{ $and: [{ id_category: bookObj.id_category }, { _id: { $nin: [bookId] } }] }, { $and: [{ id_author: bookObj.id_author }, { _id: { $nin: [bookId] } }] }] })
-      .limit(5)
-      .sort({ release_date: -1 })
+    const releatedBooksByCategory = await book
+      .find({
+        $and: [
+          { id_category: bookObj.id_category },
+          { _id: { $nin: [bookId] } }
+        ]
+      })
+      .limit(NUMBER_RELATED_BOOK)
+      .sort({ release_date: -1 });
+    const releatedBooksByCategoryCount = await book.countDocuments({
+      $and: [
+        { id_category: bookObj.id_category },
+        { _id: { $nin: [bookId] } }
+      ]
+    })
+    const releatedBooksByPublisher = await book
+      .find({
+        $and: [
+          { id_nsx: bookObj.id_nsx },
+          { _id: { $nin: [bookId] } }
+        ]
+      })
+      .limit(NUMBER_RELATED_BOOK)
+      .sort({ release_date: -1 });
+    const releatedBooksByPublisherCount = await book.countDocuments({
+      $and: [
+        { id_nsx: bookObj.id_nsx },
+        { _id: { $nin: [bookId] } }
+      ]
+    })
+    const releatedBooksByAuthor = await book
+      .find({
+        $and: [
+          { id_author: bookObj.id_author },
+          { _id: { $nin: [bookId] } }
+        ]
+      })
+      .limit(NUMBER_RELATED_BOOK)
+      .sort({ release_date: -1 });
 
-    res.status(200).json({ data: docs });
+    const releatedBooksByAuthorCount = await book.countDocuments({
+      $and: [
+        { id_author: bookObj.id_author },
+        { _id: { $nin: [bookId] } }
+      ]
+    });
+    res.status(200).json({ 
+      data: {
+        releatedBooksByCategory: {
+          data: releatedBooksByCategory,
+          totalPage: releatedBooksByCategoryCount ? parseInt(((releatedBooksByCategoryCount - 1) / NUMBER_RELATED_BOOK) + 1) : 1
+        },
+        releatedBooksByPublisher: {
+          data: releatedBooksByPublisher,
+          totalPage: releatedBooksByPublisherCount ? parseInt(((releatedBooksByPublisherCount - 1) / NUMBER_RELATED_BOOK) + 1) : 1
+        },
+        releatedBooksByAuthor: {
+          data: releatedBooksByAuthor,
+          totalPage: releatedBooksByAuthorCount ? parseInt(((releatedBooksByAuthorCount - 1) / NUMBER_RELATED_BOOK) + 1) : 1
+        },
+        limitRelatedBooks: NUMBER_RELATED_BOOK
+      }
+    });
 
   }
   catch (err) {
