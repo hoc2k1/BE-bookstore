@@ -34,7 +34,6 @@ exports.addNewAddress = async (req, res) => {
     typeof req.body.lastName === "undefined" ||
     typeof req.body.province === "undefined" ||
     typeof req.body.district === "undefined" ||
-    typeof req.body.commune === "undefined" ||
     typeof req.body.phoneNumber === "undefined" ||
     typeof req.body.id_user === "undefined"
   ) {
@@ -102,7 +101,6 @@ exports.updateAddress = async (req, res) => {
     typeof req.body.lastName === "undefined" ||
     typeof req.body.province === "undefined" ||
     typeof req.body.district === "undefined" ||
-    typeof req.body.commune === "undefined" ||
     typeof req.body.phoneNumber === "undefined" ||
     typeof req.body.id === "undefined"
   ) {
