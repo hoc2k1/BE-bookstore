@@ -3,17 +3,6 @@ const book = require('../models/book.model');
 const NUMBER_BOOK_PER_PAGE = 24
 const NUMBER_RELATED_BOOK = 8
 
-exports.getTotalPage = (req, res) => {
-  book.find({})
-    .then(docs => {
-      res.status(200).json({ data: parseInt((docs.length - 1) / NUMBER_BOOK_PER_PAGE) + 1 })
-    })
-    .catch(err => {
-      console.log(err);
-      res.status(500).json({ error: err.message });
-    })
-}
-
 exports.getAllBook = async (req, res) => {
   if ((typeof req.body.page === 'undefined')) {
     res.status(422).json({ msg: 'Invalid data' });

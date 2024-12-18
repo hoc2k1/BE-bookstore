@@ -26,20 +26,6 @@ exports.addToCart = async (req, res) => {
     }
     return;
   }
-  if (cartFind === null) {
-    const cart_new = new cart({
-      id_user: id_user,
-      products: products
-    });
-    let cartsave;
-    try {
-      cartsave = await cart_new.save();
-    } catch (err) {
-      res.status(500).json({ msg: err });
-      return;
-    }
-    return;
-  }
   for (let i = 0; i < products.length; i++) {
     let index = cartFind.products.findIndex(
       element => products[i]._id === element._id
