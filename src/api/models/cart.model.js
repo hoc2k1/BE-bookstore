@@ -17,7 +17,7 @@ const cart = new Schema({
         name: String,
         price: Number,
         release_date: Date,
-        img: String,
+        img: Array,
         describe: String,
         id_nsx: String,
         id_nsx: String,
