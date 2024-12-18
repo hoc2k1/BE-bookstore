@@ -70,7 +70,6 @@ exports.addToCart = async (req, res) => {
         await cartFind.save();
         res.status(200).json({ data: cartFind });
       } catch (err) {
-        console.log(234, err)
         res.status(500).json({ msg: err });
         return;
       }
@@ -111,7 +110,6 @@ exports.addToCart = async (req, res) => {
       }
     }
     catch (err) {
-      console.log(236, err)
       console.log(err)
       res.status(500).json({ msg: err })
       return;
@@ -120,7 +118,6 @@ exports.addToCart = async (req, res) => {
 };
 exports.getCartById = async (req, res) => {
   if (typeof req.params.id === "undefined") {
-    console.log(3424)
     res.status(422).json({ msg: "invalid data" });
     return;
   }
