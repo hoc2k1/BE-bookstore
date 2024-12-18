@@ -195,7 +195,7 @@ exports.updateInfor = async (req, res) => {
     typeof req.body.lastName === "undefined" ||
     typeof req.body.email === "undefined"
   ) {
-    res.status(422).json({ msg: "Invalid data" });
+    res.status(422).json({ msg: "Thông tin không hợp lệ" });
     return;
   }
   let { email, firstName, lastName } = req.body;
@@ -203,19 +203,11 @@ exports.updateInfor = async (req, res) => {
   try {
     userFind = await user.findOne({ email: email });
   } catch (err) {
-    res.status(500).json({ msg: err });
+    res.status(500).json({ msg: "Tài khoản không tồn tại!" });
     return;
   }
   if (userFind === null) {
-    res.status(422).json({ msg: "not found" });
-    return;
-  }
-  userFind.firstName = firstName;
-  userFind.lastName = lastName;
-  try {
-    await userFind.save();
-  } catch (err) {
-    res.status(500).json({ msg: err });
+    res.status(422).json({ msg: "Tài khoản không tồn tại!" });
     return;
   }
   const token = jwt.sign(
@@ -223,6 +215,15 @@ exports.updateInfor = async (req, res) => {
     secret_key,
     { expiresIn: '7d' }
   );
+  userFind.firstName = firstName;
+  userFind.lastName = lastName;
+  userFind.token = token;
+  try {
+    await userFind.save();
+  } catch (err) {
+    res.status(500).json({ msg: "Something when wrong!" });
+    return;
+  }
   res.status(200).json({
     msg: "success",
     token: token,
@@ -237,35 +238,50 @@ exports.updateInfor = async (req, res) => {
 
 exports.updatePassword = async (req, res) => {
   if (
-    typeof req.body.oldpassword === "undefined" ||
-    typeof req.body.newpassword === "undefined" ||
+    typeof req.body.oldPassword === "undefined" ||
+    typeof req.body.newPassword === "undefined" ||
     typeof req.body.email === "undefined"
   ) {
-    res.status(422).json({ msg: "Invalid data" });
+    res.status(422).json({ msg: "Thông tin không hợp lệ" });
     return;
   }
-  let { email, oldpassword, newpassword } = req.body;
+  let { email, oldPassword, newPassword } = req.body;
   let userFind = null;
   try {
     userFind = await user.findOne({ email: email });
   } catch (err) {
-    res.json({ msg: err });
+    res.status(500).json({ msg: "Something when wrong!" });
     return;
   }
   if (userFind == null) {
-    res.status(422).json({ msg: "Invalid data" });
+    res.status(422).json({ msg: "Tài khoản không tồn tại!" });
     return;
   }
-  if (!bcrypt.compareSync(oldpassword, userFind.password)) {
-    res.status(422).json({ msg: "Invalid data" });
+  if (!bcrypt.compareSync(oldPassword, userFind.password)) {
+    res.status(200).json({ error: "Mật khẩu cũ không chính xác!" });
     return;
   }
-  userFind.password = bcrypt.hashSync(newpassword, 10);
+  const token = jwt.sign(
+    { email: email },
+    secret_key,
+    { expiresIn: '7d' }
+  );
+  userFind.password = bcrypt.hashSync(newPassword, 10);
+  userFind.token = token;
   try {
     await userFind.save();
   } catch (err) {
-    res.status(500).json({ msg: err });
+    res.status(500).json({ msg: "Something when wrong!" });
     return;
   }
-  res.status(200).json({ msg: "success" });
+  res.status(200).json({
+    msg: "success",
+    token: token,
+    user: {
+      email: userFind.email,
+      firstName: userFind.firstName,
+      lastName: userFind.lastName,
+      id: userFind._id,
+    },
+  });
 };
