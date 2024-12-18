@@ -20,8 +20,10 @@ const cart = new Schema({
         img: Array,
         describe: String,
         id_nsx: String,
-        id_nsx: String,
+        id_author: String,
         count: Number,
+        sales: Number,
+        available: Boolean,
         _id: String,
       }
     ],
