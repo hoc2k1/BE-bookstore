@@ -8,12 +8,6 @@ module.exports = (app) => {
   app.route('/user/login')
     .post(user_controller.login);
 
-  app.route('/user/request/forgotpassword/:email')
-    .get(user_controller.requestForgotPassword)
-
-  app.route('/user/forgotpassword')
-    .post(user_controller.forgotPassword)
-
   app.route('/auth')
     .post(auth.verify)
 

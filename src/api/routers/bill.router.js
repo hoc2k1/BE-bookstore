@@ -1,7 +1,7 @@
 'use strict'
 const bill_controller = require('../controllers/bill.controller');
 module.exports = (app) => {
-  app.route('/bill/:id_user')
+  app.route('/bill/getallbill/:id_user')
     .get(bill_controller.getBillByIDUser);
   app.route('/bill/top/')
     .post(bill_controller.statisticalTop10);
@@ -21,5 +21,6 @@ module.exports = (app) => {
     .get(bill_controller.checkout);
   app.route('/bill/update')
     .post(bill_controller.updateBill);
-    
+  app.route('/bill/getbill/:id')
+    .get(bill_controller.findBillById)
 }

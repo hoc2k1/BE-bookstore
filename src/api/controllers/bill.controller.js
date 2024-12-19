@@ -1,6 +1,5 @@
 "use strict";
 const bill = require("../models/bill.model");
-const cart = require("../models/cart.model");
 const book = require("../models/book.model");
 const constants = require("../../contants")
 
@@ -26,6 +25,29 @@ const updateCountProducts = async ({products, isCheckout}) => {
       await book_item.save()
     })
   );
+}
+
+exports.findBillById = async (req, res) => {
+  if (
+    typeof req.params.id === "undefined"
+  ) {
+    res.status(422).json({ msg: "Invalid data" });
+    return;
+  }
+  var billFind = null;
+  try {
+    billFind = await bill.findById(req.params.id);
+    if (billFind) {
+      res.status(200).json({ data: billFind });
+      return
+    }
+    else {
+      res.status(500).json({ msg: 'Không tìm thấy đơn hàng' });
+    }
+  } catch (err) {
+    res.status(500).json({ msg: err });
+    return;
+  }
 }
 
 exports.findBillOrAddBill = async (req, res) => {
@@ -186,7 +208,10 @@ exports.getBillByIDUser = async (req, res) => {
   let billFind = null;
   try {
     billFind = await bill
-      .find({ id_user: req.params.id_user })
+      .find({ 
+        id_user: req.params.id_user,
+        status: { $ne: constants.billStatus.pending }
+      })
       .sort({ date_create: -1 });
   } catch (err) {
     console.log(err);
