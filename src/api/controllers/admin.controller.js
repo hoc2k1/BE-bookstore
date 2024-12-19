@@ -14,6 +14,7 @@ const author = require("../models/author.model");
 const publisher = require("../models/publisher.model");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const secret_key="mot_store"
 const fs = require("fs");
 const uploadImg = async (path) => {
   let res;
@@ -489,22 +490,18 @@ exports.login = async (req, res) => {
     return;
   }
   if (userFind == null) {
-    res.status(422).json({ msg: "Invalid data" });
-    return;
-  }
-
-  if (!userFind.is_verify) {
-    res.status(401).json({ msg: "no_registration_confirmation" });
+    res.status(200).json({error: "Tài khoản hoặc mật khẩu không chính xác"});
     return;
   }
 
   if (!bcrypt.compareSync(password, userFind.password)) {
-    res.status(422).json({ msg: "Invalid data" });
+    res.status(200).json({error: "Tài khoản hoặc mật khẩu không chính xác"});
     return;
   }
-  let token = jwt.sign(
-    { email: email, iat: Math.floor(Date.now() / 1000) - 60 * 30 },
-    "shhhhh"
+  const token = jwt.sign(
+    { email: email },
+    secret_key,
+    { expiresIn: '7d' }
   );
   res.status(200).json({
     msg: "success",
