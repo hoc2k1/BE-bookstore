@@ -8,9 +8,11 @@ const bill = new Schema({
     required: [true, "can't be blank"],
     index: true
   },
-  date: {
-    type: Date,
-    default: Date.now,
+  date_create: {
+    type: Date
+  },
+  date_complete: {
+    type: Date
   },
   products: {
     type: [
@@ -19,25 +21,26 @@ const bill = new Schema({
         name: String,
         price: Number,
         release_date: Date,
-        img: String,
+        img: Array,
         describe: String,
         id_nsx: String,
-        id_nsx: String,
+        id_author: String,
         count: Number,
-        _id: String
+        sales: Number,
+        available: Boolean,
+        _id: String,
       }
     ],
     required: true,
     minlength: 1
   },
   total: Number,
+  subtotal: Number,
+  discount: Number,
+  payment_method: String,
   address: String,
   phone: String,
-  name: String,
-  token: String,
-  issend: {
-    type: String,
-    default: '99'
-  }
+  status: String,
+  name: String
 });
 module.exports = mongoose.model("bill", bill);

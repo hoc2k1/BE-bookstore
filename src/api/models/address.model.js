@@ -22,8 +22,7 @@ const address = new Schema({
     type: String
   },
   commune: {
-    type: String,
-    required: [true, "can't be blank"]
+    type: String
   },
   specificAddress: {
     type: String
