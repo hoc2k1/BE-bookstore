@@ -18,7 +18,7 @@ exports.verify = async (req, res) => {
           res.status(200).json({ error: 'expirated' });
           return;
         } else {
-          console.log("Token không hợp lệ:", err);
+          res.status(500).json({ msg: "Something when wrong!" });
         }
       } else {
         if (decoded.email == email) {
