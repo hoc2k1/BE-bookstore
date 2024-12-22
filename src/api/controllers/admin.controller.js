@@ -490,12 +490,12 @@ exports.login = async (req, res) => {
     return;
   }
   if (userFind == null) {
-    res.status(200).json({error: "Tài khoản hoặc mật khẩu không chính xác"});
+    res.status(200).json({error: "Tài khoản hoặc mật khẩu không chính xác!"});
     return;
   }
 
   if (!bcrypt.compareSync(password, userFind.password)) {
-    res.status(200).json({error: "Tài khoản hoặc mật khẩu không chính xác"});
+    res.status(200).json({error: "Tài khoản hoặc mật khẩu không chính xác!"});
     return;
   }
   const token = jwt.sign(
