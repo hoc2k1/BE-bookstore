@@ -209,7 +209,7 @@ exports.addPublisher = async (req, res) => {
     return;
   }
   if (publisherFind.length > 0) {
-    res.status(409).json({ msg: "Publisher already exist" });
+    res.status(200).json({ error: "Tên nhà xuất bản đã tồn tại!" });
     return;
   }
   const newPublisher = new publisher({ name: name });
@@ -243,15 +243,28 @@ exports.updatePublisher = async (req, res) => {
     res.status(422).json({ msg: "not found" });
     return;
   }
-  publisherFind.name = name;
+  let publisherFind1
   try {
-    await publisherFind.save();
+    publisherFind1 = await publisher.find({ name: name });
   } catch (err) {
-    console.log(err);
     res.status(500).json({ msg: err });
     return;
   }
-  res.status(201).json({ msg: "success", publisher: { name: name } });
+  if (publisherFind1.length > 0) {
+    res.status(200).json({ error: "Tên nhà xuất bản đã tồn tại!" });
+    return;
+  }
+  else {
+    publisherFind.name = name;
+    try {
+      await publisherFind.save();
+    } catch (err) {
+      console.log(err);
+      res.status(500).json({ msg: err });
+      return;
+    }
+    res.status(200).json({ msg: "success", publisher: { name: name } });
+  }
 };
 
 exports.deleteUser = async (req, res) => {
@@ -343,7 +356,7 @@ exports.addAuthor = async (req, res) => {
     return;
   }
   if (authorFind.length > 0) {
-    res.status(200).json({ error: "Tên tác giả đã tồn tại" });
+    res.status(200).json({ error: "Tên tác giả đã tồn tại!" });
     return;
   }
   const newAuthor = new author({ name: name });
@@ -385,7 +398,7 @@ exports.updateAuthor = async (req, res) => {
     return;
   }
   if (authorFind1.length > 0) {
-    res.status(200).json({ error: "Tên tác giả đã tồn tại" });
+    res.status(200).json({ error: "Tên tác giả đã tồn tại!" });
     return;
   }
   else {
