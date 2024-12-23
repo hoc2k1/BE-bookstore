@@ -343,7 +343,7 @@ exports.addAuthor = async (req, res) => {
     return;
   }
   if (authorFind.length > 0) {
-    res.status(409).json({ msg: "Author already exist" });
+    res.status(200).json({ error: "Tên tác giả đã tồn tại" });
     return;
   }
   const newAuthor = new author({ name: name });
@@ -354,7 +354,7 @@ exports.addAuthor = async (req, res) => {
     res.status(500).json({ msg: err });
     return;
   }
-  res.status(201).json({ msg: "success" });
+  res.status(200).json({ msg: "success" });
 };
 
 exports.updateAuthor = async (req, res) => {
@@ -377,15 +377,28 @@ exports.updateAuthor = async (req, res) => {
     res.status(422).json({ msg: "not found" });
     return;
   }
-  authorFind.name = name;
+  let authorFind1
   try {
-    await authorFind.save();
+    authorFind1 = await author.find({ name: name });
   } catch (err) {
-    console.log(err);
     res.status(500).json({ msg: err });
     return;
   }
-  res.status(201).json({ msg: "success", author: { name: name } });
+  if (authorFind1.length > 0) {
+    res.status(200).json({ error: "Tên tác giả đã tồn tại" });
+    return;
+  }
+  else {
+    authorFind.name = name;
+    try {
+      await authorFind.save();
+    } catch (err) {
+      console.log(err);
+      res.status(500).json({ msg: err });
+      return;
+    }
+    res.status(200).json({ msg: "success", author: { name: name } });
+  }
 };
 exports.addUser = async (req, res) => {
   if (
