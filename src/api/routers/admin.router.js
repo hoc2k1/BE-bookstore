@@ -20,9 +20,9 @@ module.exports = (app) => {
   app.route('/admin/deleteuser')
     .post(admin_controller.deleteUser);
   app.route('/admin/addcategory')
-    .post(admin_controller.addCategory);
+    .post(upload.single('image'), admin_controller.addCategory);
   app.route('/admin/updatecategory')
-    .post(admin_controller.updateCategory);
+    .post(upload.single('image'), admin_controller.updateCategory);
   app.route('/admin/addauthor')
     .post(admin_controller.addAuthor);
   app.route('/admin/updateauthor')

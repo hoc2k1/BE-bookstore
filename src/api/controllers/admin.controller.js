@@ -284,11 +284,13 @@ exports.deleteUser = async (req, res) => {
 };
 
 exports.addCategory = async (req, res) => {
-  if (typeof req.body.name === "undefined") {
+  if (
+    typeof req.body.name === "undefined"
+  ) {
     res.status(422).json({ msg: "Invalid data" });
     return;
   }
-  let { name } = req.body;
+  let { name, image } = req.body;
   let categoryFind;
   try {
     categoryFind = await category.find({ name: name });
@@ -297,10 +299,18 @@ exports.addCategory = async (req, res) => {
     return;
   }
   if (categoryFind.length > 0) {
-    res.status(409).json({ msg: "Category already exist" });
+    res.status(200).json({ error: "Tên thể loại đã tồn tại" });
     return;
   }
-  const newCategory = new category({ name: name });
+  let urlImg = ''
+  if (image) {
+    urlImg = await uploadImg(image.path);
+    if (urlImg === false) {
+      res.status(500).json({ msg: "server error" });
+      return;
+    }
+  }
+  const newCategory = new category({ name: name, image: urlImg });
   try {
     await newCategory.save();
   } catch (err) {
