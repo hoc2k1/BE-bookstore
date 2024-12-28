@@ -2,9 +2,9 @@
 var cloudinary = require("cloudinary").v2;
 var uploads = {};
 cloudinary.config({
-  cloud_name: "ilike",
-  api_key: "678772438397898",
-  api_secret: "zvdEWEfrF38a2dLOtVp-3BulMno",
+  cloud_name: "dsjxs0xxt",
+  api_key: "892963462585344",
+  api_secret: "sGzUk7h3ptDQcuz_kGDQDec-QEs",
 });
 
 const book = require("../models/book.model");
@@ -250,7 +250,7 @@ exports.updatePublisher = async (req, res) => {
     res.status(500).json({ msg: err });
     return;
   }
-  if (publisherFind1.length > 0) {
+  if (publisherFind1.length > 0 && !(publisherFind1.length == 1 && publisherFind1[0].id == id)) {
     res.status(200).json({ error: "Tên nhà xuất bản đã tồn tại!" });
     return;
   }
@@ -290,7 +290,8 @@ exports.addCategory = async (req, res) => {
     res.status(422).json({ msg: "Invalid data" });
     return;
   }
-  let { name, image } = req.body;
+  let { name } = req.body;
+  let image = req.file
   let categoryFind;
   try {
     categoryFind = await category.find({ name: name });
@@ -330,6 +331,8 @@ exports.updateCategory = async (req, res) => {
     return;
   }
   let { id, name } = req.body;
+  let image = req.file
+
   let categoryFind;
   try {
     categoryFind = await category.findById(id);
@@ -341,15 +344,39 @@ exports.updateCategory = async (req, res) => {
     res.status(422).json({ msg: "not found" });
     return;
   }
-  categoryFind.name = name;
+  let categoryFind1
   try {
-    await categoryFind.save();
+    categoryFind1 = await category.find({ name: name });
   } catch (err) {
-    console.log(err);
     res.status(500).json({ msg: err });
     return;
   }
-  res.status(201).json({ msg: "success", category: { name: name } });
+  if (categoryFind1.length > 0 && !(categoryFind1.length == 1 && categoryFind1[0].id == id)) {
+    res.status(200).json({ error: "Tên thể loại đã tồn tại!" });
+    return;
+  }
+  else {
+    let urlImg = ''
+    if (image) {
+      urlImg = await uploadImg(image.path);
+      if (urlImg === false) {
+        res.status(500).json({ msg: "server error" });
+        return;
+      }
+    }
+    categoryFind.name = name;
+    if (urlImg) {
+      categoryFind.image = urlImg
+    }
+    try {
+      await categoryFind.save();
+    } catch (err) {
+      console.log(err);
+      res.status(500).json({ msg: err });
+      return;
+    }
+    res.status(200).json({ msg: "success", category: { id: id, name: name, image: urlImg } });
+  }
 };
 
 exports.addAuthor = async (req, res) => {
@@ -407,7 +434,7 @@ exports.updateAuthor = async (req, res) => {
     res.status(500).json({ msg: err });
     return;
   }
-  if (authorFind1.length > 0) {
+  if (authorFind1.length > 0 && !(authorFind1.length == 1 && authorFind1[0].id == id)) {
     res.status(200).json({ error: "Tên tác giả đã tồn tại!" });
     return;
   }
