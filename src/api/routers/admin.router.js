@@ -33,8 +33,10 @@ module.exports = (app) => {
     .post(admin_controller.updatePublisher);
   app.route('/admin/adduser')
     .post(admin_controller.addUser);
-  app.route('/admin/getAllUser/:page')
-    .get(admin_controller.getAllUser);
+  app.route('/admin/getAllUsers')
+    .get(admin_controller.getAllUsers);
+  app.route('/admin/getAllAddresses')
+    .get(admin_controller.getAllAddresses);
   app.route('/admin/login')
     .post(admin_controller.login);
 }

@@ -10,6 +10,7 @@ cloudinary.config({
 const book = require("../models/book.model");
 const user = require("../models/user.model");
 const category = require("../models/category.model");
+const address = require("../models/address.model");
 const author = require("../models/author.model");
 const publisher = require("../models/publisher.model");
 const bcrypt = require("bcrypt");
@@ -503,39 +504,26 @@ exports.addUser = async (req, res) => {
   }
   res.status(201).json({ msg: "success" });
 };
-exports.getAllUser = async (req, res) => {
-  if (typeof req.params.page === "undefined") {
-    res.status(402).json({ msg: "Data invalid" });
-    return;
-  }
-  let count = null;
-  try {
-    count = await user.countDocuments({});
-  } catch (err) {
-    console.log(err);
-    res.status(500).json({ msg: err });
-    return;
-  }
-  let totalPage = parseInt((count - 1) / 9 + 1);
-  let { page } = req.params;
-  if (parseInt(page) < 1 || parseInt(page) > totalPage) {
-    res.status(200).json({ data: [], msg: "Invalid page", totalPage });
-    return;
-  }
-
-  try {
-    const docs = await user
-      .find({})
-      .skip(9 * (parseInt(page) - 1))
-      .limit(9)
-
-    res.status(200).json({ data: docs, totalPage });
-  }
-  catch (err) {
-    console.log(err);
-    res.status(500).json({ msg: err.message });
-  }
+exports.getAllUsers = async (req, res) => {
+  user.find({})
+    .then(docs => {
+      res.status(200).json({ data: docs });
+    })
+    .catch(err => {
+      console.error(err);
+      res.status(500).json({ error: err.message });
+    });
 };
+exports.getAllAddresses = async (req, res) => {
+  address.find({})
+    .then(docs => {
+      res.status(200).json({ data: docs });
+    })
+    .catch(err => {
+      console.error(err);
+      res.status(500).json({ error: err.message });
+    });
+}
 exports.login = async (req, res) => {
   if (
     typeof req.body.email === "undefined" ||
