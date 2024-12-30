@@ -18,7 +18,7 @@ exports.register = async (req, res) => {
     res.status(422).json({ msg: "Invalid data" });
     return;
   }
-  let { email, password, firstName, lastName } =
+  let { email, password, firstName, lastName, is_admin } =
     req.body;
   if (
     (email.indexOf("@") === -1 && email.indexOf(".") === -1) ||
@@ -47,6 +47,7 @@ exports.register = async (req, res) => {
   const newUser = new user({
     email: email,
     is_verify: true,
+    is_admin: is_admin,
     firstName: firstName,
     lastName: lastName,
     password: password,
@@ -126,7 +127,7 @@ exports.updateInfor = async (req, res) => {
     res.status(422).json({ msg: "Thông tin không hợp lệ" });
     return;
   }
-  let { email, firstName, lastName } = req.body;
+  let { email, firstName, lastName, is_admin } = req.body;
   let userFind;
   try {
     userFind = await user.findOne({ email: email });
@@ -145,6 +146,7 @@ exports.updateInfor = async (req, res) => {
   );
   userFind.firstName = firstName;
   userFind.lastName = lastName;
+  userFind.is_admin = is_admin;
   userFind.token = token;
   try {
     await userFind.save();
@@ -159,6 +161,7 @@ exports.updateInfor = async (req, res) => {
       email: userFind.email,
       firstName: userFind.firstName,
       lastName: userFind.lastName,
+      is_admin: is_admin,
       id: userFind._id,
     },
   });

@@ -15,10 +15,8 @@ module.exports = (app) => {
     .post(upload.single('file'), admin_controller.updateBook);
   app.route('/admin/deletebook/:id')
     .get(admin_controller.deletebook);
-  app.route('/admin/updateuser')
-    .post(admin_controller.updateUser);
-  app.route('/admin/deleteuser')
-    .post(admin_controller.deleteUser);
+  app.route('/admin/deleteuser/:id')
+    .get(admin_controller.deleteUser);
   app.route('/admin/addcategory')
     .post(upload.single('image'), admin_controller.addCategory);
   app.route('/admin/updatecategory')
@@ -34,9 +32,11 @@ module.exports = (app) => {
   app.route('/admin/adduser')
     .post(admin_controller.addUser);
   app.route('/admin/getAllUsers')
-    .get(admin_controller.getAllUsers);
+    .post(admin_controller.getAllUsers);
   app.route('/admin/getAllAddresses')
-    .get(admin_controller.getAllAddresses);
+    .post(admin_controller.getAllAddresses);
   app.route('/admin/login')
     .post(admin_controller.login);
+  app.route('admin/revenue')
+    .post(admin_controller.getRevenue)
 }

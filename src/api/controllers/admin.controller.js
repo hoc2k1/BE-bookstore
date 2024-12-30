@@ -13,10 +13,13 @@ const category = require("../models/category.model");
 const address = require("../models/address.model");
 const author = require("../models/author.model");
 const publisher = require("../models/publisher.model");
+const constants = require("../../contants")
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const secret_key="mot_store"
+const LIMIT = 30;
 const fs = require("fs");
+
 const uploadImg = async (path) => {
   let res;
   try {
@@ -269,19 +272,26 @@ exports.updatePublisher = async (req, res) => {
 };
 
 exports.deleteUser = async (req, res) => {
-  if (typeof req.body.email === "undefined") {
+  if (typeof req.params.id === "undefined") {
     res.status(422).json({ msg: "Invalid data" });
     return;
   }
-  let userFind;
   try {
-    userFind = await user.findOne({ email: req.body.email });
+    const userFind = await user.findById(req.params.id)
+    if (userFind) {
+      await user.findByIdAndDelete(req.params.id);
+      await address.deleteMany({ id_user: userFind._id });
+      res.status(200).json({ msg: "success" });
+      return;
+    }
+    else {
+      res.status(500).json({ msg: err });
+      return;
+    }
   } catch (err) {
     res.status(500).json({ msg: err });
     return;
   }
-  userFind.remove();
-  res.status(200).json({ msg: "success" });
 };
 
 exports.addCategory = async (req, res) => {
@@ -505,31 +515,89 @@ exports.addUser = async (req, res) => {
   res.status(201).json({ msg: "success" });
 };
 exports.getAllUsers = async (req, res) => {
-  user.find({})
-    .then(docs => {
-      res.status(200).json({ data: docs });
-    })
-    .catch(err => {
-      console.error(err);
-      res.status(500).json({ error: err.message });
+  let { page, searchText } = req.body;
+  if (!page) page = 1;
+  let filter;
+  if (searchText) {
+    filter = { email: new RegExp(searchText, "i") }
+  }
+  else filter = {}
+
+  try {
+    const totalCount = await user.countDocuments(filter);
+    const totalPages = totalCount ? parseInt(((totalCount - 1) / LIMIT) + 1) : 1;
+    const users = await user
+      .find(filter)
+      .skip(LIMIT * (parseInt(page) - 1))
+      .limit(LIMIT)
+    res.status(200).json({
+      data: users.length > 0 ? users : [],
+      totalPages: totalPages,
+      currentPage: page,
+      totalCount: totalCount
     });
+    return;
+  }
+  catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
 };
 exports.getAllAddresses = async (req, res) => {
-  address.find({})
-    .then(docs => {
-      res.status(200).json({ data: docs });
-    })
-    .catch(err => {
-      console.error(err);
-      res.status(500).json({ error: err.message });
+  let { page, searchText } = req.body;
+  if (!page) page = 1;
+
+  try {
+    let userIds = [];
+    let filter;
+    if (searchText) {
+      const users = await user.find({ email: new RegExp(searchText, "i") });
+      userIds = users.map(user => user._id);
+      filter = userIds.length > 0 ? { id_user: { $in: userIds } } : {};
+      if (userIds.length == 0) {
+        res.status(200).json({
+          data: [],
+          totalPages: 1,
+          currentPage: 1,
+          totalCount: 0
+        });
+        return;
+      }
+    }
+    else filter = {}
+
+    const totalCount = await address.countDocuments(filter);
+
+    const totalPages = totalCount ? parseInt(((totalCount - 1) / LIMIT) + 1) : 1;
+
+    const addresses = await address
+      .find(filter)
+      .skip(LIMIT * (parseInt(page) - 1))
+      .limit(LIMIT)
+      .populate('id_user', 'email');
+
+    const addressesWithEmail = await Promise.all(addresses.map(async (item) => {
+      const findUser = await user.findById(item.id_user);
+      const newItem = {...item._doc, email: findUser ? findUser.email : null};
+      return newItem;
+    }));
+    res.status(200).json({
+      data: addressesWithEmail,
+      totalPages,
+      currentPage: page,
+      totalCount
     });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
 }
 exports.login = async (req, res) => {
   if (
     typeof req.body.email === "undefined" ||
     typeof req.body.password == "undefined"
   ) {
-    res.status(402).json({ msg: "Invalid data" });
+    res.status(422).json({ msg: "Invalid data" });
     return;
   }
   let { email, password } = req.body;
@@ -567,3 +635,32 @@ exports.login = async (req, res) => {
     },
   });
 };
+
+exports.getRevenue = async (req, res) => {
+  const { startDate, endDate } = req.query;
+
+  if (!startDate || !endDate) {
+    return res.status(422).json({ msg: "Invalid data" });
+  }
+
+  try {
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+
+    const completedBills = await Bill.find({
+      status: constants.billStatus.complete,
+      date_complete: {
+        $gte: start,
+        $lte: end,
+      },
+    });
+
+    const totalRevenue = completedBills.reduce((sum, bill) => sum + (bill.total || 0), 0);
+    res.status(200).json({
+      data: completedBills,
+      totalRevenue: totalRevenue,
+    });
+  } catch (err) {
+    res.status(500).json({ msg: "An error occurred", error: err.message });
+  }
+}

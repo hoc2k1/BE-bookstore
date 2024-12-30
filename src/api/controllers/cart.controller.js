@@ -103,7 +103,6 @@ exports.addToCart = async (req, res) => {
           await cartFind.save();
           res.status(200).json({ data: cartFind });
         } catch (err) {
-          console.log(234, err)
           res.status(500).json({ msg: err });
           return;
         }
