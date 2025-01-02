@@ -14,6 +14,7 @@ const address = require("../models/address.model");
 const author = require("../models/author.model");
 const publisher = require("../models/publisher.model");
 const constants = require("../../contants")
+const bill = require('../models/bill.model')
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const secret_key="mot_store"
@@ -637,7 +638,7 @@ exports.login = async (req, res) => {
 };
 
 exports.getRevenue = async (req, res) => {
-  const { startDate, endDate } = req.query;
+  const { startDate, endDate } = req.body;
 
   if (!startDate || !endDate) {
     return res.status(422).json({ msg: "Invalid data" });
@@ -647,20 +648,46 @@ exports.getRevenue = async (req, res) => {
     const start = new Date(startDate);
     const end = new Date(endDate);
 
-    const completedBills = await Bill.find({
+    const completedBills = await bill.find({
       status: constants.billStatus.complete,
       date_complete: {
         $gte: start,
         $lte: end,
       },
     });
+    
+    async function processCompletedBills(completedBills) {
+      return Promise.all(completedBills.map(async (item) => {
+        const updatedItem = { ...item._doc, products: [] };
+    
+        for (let product of item.products) {
+          const categoryFind = await category.findById(product.id_category);
+          const publisherFind = await publisher.findById(product.id_nsx);
+          const authorFind = await author.findById(product.id_author);
+    
+          const updatedProduct = {
+            ...product._doc,
+            category: categoryFind ? categoryFind.name : null,
+            publisher: publisherFind ? publisherFind.name : null,
+            author: authorFind ? authorFind.name : null,
+          };
+    
+          updatedItem.products.push(updatedProduct);
+        }
+    
+        return updatedItem;
+      }));
+    }
+    
+    const updatedCompletedBills = await processCompletedBills(completedBills);
 
     const totalRevenue = completedBills.reduce((sum, bill) => sum + (bill.total || 0), 0);
     res.status(200).json({
-      data: completedBills,
+      data: updatedCompletedBills,
       totalRevenue: totalRevenue,
     });
   } catch (err) {
+    console.log(24, err)
     res.status(500).json({ msg: "An error occurred", error: err.message });
   }
 }

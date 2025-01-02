@@ -37,6 +37,6 @@ module.exports = (app) => {
     .post(admin_controller.getAllAddresses);
   app.route('/admin/login')
     .post(admin_controller.login);
-  app.route('admin/revenue')
+  app.route('/admin/revenue')
     .post(admin_controller.getRevenue)
 }
