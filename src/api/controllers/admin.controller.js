@@ -18,7 +18,7 @@ const bill = require('../models/bill.model')
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const secret_key="mot_store"
-const LIMIT = 30;
+const LIMIT = 2;
 const fs = require("fs");
 
 const uploadImg = async (path) => {
@@ -149,55 +149,6 @@ exports.deletebook = async (req, res) => {
   }
   bookFind.remove();
   res.status(200).json({ msg: "success" });
-};
-
-exports.updateUser = async (req, res) => {
-  if (
-    typeof req.body.email === "undefined" ||
-    typeof req.body.firstName === "undefined" ||
-    typeof req.body.lastName === "undefined" ||
-    typeof req.body.address === "undefined" ||
-    typeof req.body.phone_number === "undefined" ||
-    typeof req.body.is_admin === "undefined"
-  ) {
-    res.status(422).json({ msg: "Invalid data" });
-    return;
-  }
-  let { email, firstName, lastName, address, phone_number, is_admin } =
-    req.body;
-  let userFind;
-  try {
-    userFind = await user.findOne({ email: email });
-  } catch (err) {
-    res.status(500).json({ msg: err });
-    return;
-  }
-  if (userFind === null) {
-    res.status(422).json({ msg: "not found" });
-    return;
-  }
-  userFind.firstName = firstName;
-  userFind.lastName = lastName;
-  userFind.address = address;
-  userFind.phone_number = phone_number;
-  userFind.is_admin = is_admin;
-  try {
-    await userFind.save();
-  } catch (err) {
-    res.status(500).json({ msg: err });
-    return;
-  }
-  res.status(200).json({
-    msg: "success",
-    user: {
-      email: userFind.email,
-      firstName: userFind.firstName,
-      lastName: userFind.lastName,
-      address: userFind.address,
-      phone_number: userFind.phone_number,
-      is_admin: userFind.is_admin,
-    },
-  });
 };
 
 exports.addPublisher = async (req, res) => {
@@ -462,59 +413,6 @@ exports.updateAuthor = async (req, res) => {
     res.status(200).json({ msg: "success", author: { name: name } });
   }
 };
-exports.addUser = async (req, res) => {
-  if (
-    typeof req.body.email === "undefined" ||
-    typeof req.body.password === "undefined" ||
-    typeof req.body.firstName === "undefined" ||
-    typeof req.body.lastName === "undefined" ||
-    typeof req.body.address === "undefined" ||
-    typeof req.body.phone_number === "undefined" ||
-    typeof req.body.is_admin === "undefined"
-  ) {
-    res.status(422).json({ msg: "Invalid data" });
-    return;
-  }
-  let {
-    email,
-    password,
-    firstName,
-    lastName,
-    address,
-    phone_number,
-    is_admin,
-  } = req.body;
-  let userFind = null;
-  try {
-    userFind = await user.find({ email: email });
-  } catch (err) {
-    res.status(500).json({ msg: err });
-    return;
-  }
-  if (userFind.length > 0) {
-    res.status(409).json({ msg: "Email already exist" });
-    return;
-  }
-  password = bcrypt.hashSync(password, 10);
-  const newUser = new user({
-    email: email,
-    firstName: firstName,
-    lastName: lastName,
-    password: password,
-    address: address,
-    phone_number: phone_number,
-    is_verify: true,
-    is_admin: is_admin,
-  });
-  try {
-    await newUser.save();
-  } catch (err) {
-    console.log(err);
-    res.status(500).json({ msg: err });
-    return;
-  }
-  res.status(201).json({ msg: "success" });
-};
 exports.getAllUsers = async (req, res) => {
   let { page, searchText } = req.body;
   if (!page) page = 1;
@@ -689,5 +587,35 @@ exports.getRevenue = async (req, res) => {
   } catch (err) {
     console.log(24, err)
     res.status(500).json({ msg: "An error occurred", error: err.message });
+  }
+}
+
+exports.getBills = async (req, res) => {
+  if (
+    typeof req.body.page === "undefined" || 
+    typeof req.body.status === "undefined"
+  ) {
+    res.status(402).json({ msg: "data invalid" });
+    return;
+  }
+  const { status, page } = req.body
+  try {
+    const totalCount = await bill.countDocuments({status: status});
+    const totalPages = totalCount ? parseInt(((totalCount - 1) / LIMIT) + 1) : 1;
+    const bills = await bill
+      .find({status: status})
+      .skip(LIMIT * (parseInt(page) - 1))
+      .limit(LIMIT)
+    res.status(200).json({
+      data: bills.length > 0 ? bills : [],
+      totalPages: totalPages,
+      currentPage: page,
+      totalCount: totalCount
+    });
+    return;
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ msg: "Server error" });
+    return;
   }
 }

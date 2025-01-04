@@ -12,7 +12,7 @@ const commentRouter = require('./api/routers/comment.router');
 const billRouter = require('./api/routers/bill.router');
 const cartRouter = require('./api/routers/cart.router');
 const adminRouter = require('./api/routers/admin.router');
-const addressRouter = require('./api/routers/addres.router');
+const addressRouter = require('./api/routers/address.router');
 const bannerRouter = require('./api/routers/banner.router');
 const homeRouter = require('./api/routers/home.router');
 

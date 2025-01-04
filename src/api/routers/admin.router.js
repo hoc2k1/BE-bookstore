@@ -29,8 +29,6 @@ module.exports = (app) => {
     .post(admin_controller.addPublisher);
   app.route('/admin/updatepublisher')
     .post(admin_controller.updatePublisher);
-  app.route('/admin/adduser')
-    .post(admin_controller.addUser);
   app.route('/admin/getAllUsers')
     .post(admin_controller.getAllUsers);
   app.route('/admin/getAllAddresses')
@@ -38,5 +36,7 @@ module.exports = (app) => {
   app.route('/admin/login')
     .post(admin_controller.login);
   app.route('/admin/revenue')
-    .post(admin_controller.getRevenue)
+    .post(admin_controller.getRevenue);
+  app.route('/admin/bills')
+    .post(admin_controller.getBills)
 }
