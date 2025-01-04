@@ -67,7 +67,7 @@ const test = () => {
 }
 // test();
 
-const port = process.env.PORT || 8080;
+const port = process.env.PORT
 
 mongoose.connect(process.env.MONGO_DB)
   .then(() => {
