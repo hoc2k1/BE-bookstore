@@ -152,13 +152,12 @@ exports.deletebook = async (req, res) => {
   }
   let bookFind;
   try {
-    bookFind = await book.findById(req.params.id);
+    await book.findByIdAndDelete(req.params.id);
   } catch (err) {
     console.log(err);
     res.status(500).json({ msg: err });
     return;
   }
-  bookFind.remove();
   res.status(200).json({ msg: "success" });
 };
 
