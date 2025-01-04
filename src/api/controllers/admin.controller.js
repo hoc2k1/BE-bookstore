@@ -17,19 +17,30 @@ const constants = require("../../contants")
 const bill = require('../models/bill.model')
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const streamifier = require('streamifier');
 const secret_key="mot_store"
 const LIMIT = 2;
 const fs = require("fs");
 
-const uploadImg = async (path) => {
-  let res;
-  try {
-    res = await cloudinary.uploader.upload(path);
-  } catch (err) {
-    console.log(err);
-    return false;
-  }
-  return res.secure_url;
+const uploadImg = async (fileBuffer) => {
+  return new Promise((resolve, reject) => {
+    const uploadStream = cloudinary.uploader.upload_stream(
+      {
+        resource_type: "auto",
+        public_id: `${Date.now()}`,
+      },
+      (error, result) => {
+        if (error) {
+          console.log(error);
+          reject(false);
+        } else {
+          resolve(result.secure_url);
+        }
+      }
+    );
+
+    streamifier.createReadStream(fileBuffer).pipe(uploadStream);
+  });
 };
 exports.addBook = async (req, res) => {
   if (
@@ -54,7 +65,7 @@ exports.addBook = async (req, res) => {
     id_nsx,
     id_author,
   } = req.body;
-  let urlImg = await uploadImg(req.file.path);
+  let urlImg = await uploadImg(req.file.buffer);
   if (urlImg === false) {
     res.status(500).json({ msg: "server error" });
     return;
@@ -75,7 +86,7 @@ exports.addBook = async (req, res) => {
     res.status(500).json({ msg: "server error" });
     return;
   }
-  fs.unlink(req.file.path, (err) => {
+  fs.unlink(req.file.buffer, (err) => {
     if (err) throw err;
   });
   res.status(201).json({ msg: "success" });
@@ -108,7 +119,7 @@ exports.updateBook = async (req, res) => {
   }
   let urlImg = null;
   if (typeof req.file !== "undefined") {
-    urlImg = await uploadImg(req.file.path);
+    urlImg = await uploadImg(req.file.buffer);
   }
   if (urlImg !== null) {
     if (urlImg === false) {
@@ -268,7 +279,7 @@ exports.addCategory = async (req, res) => {
   }
   let urlImg = ''
   if (image) {
-    urlImg = await uploadImg(image.path);
+    urlImg = await uploadImg(image.buffer);
     if (urlImg === false) {
       res.status(500).json({ msg: "server error" });
       return;
@@ -320,8 +331,9 @@ exports.updateCategory = async (req, res) => {
   }
   else {
     let urlImg = ''
+    console.log(1, image)
     if (image) {
-      urlImg = await uploadImg(image.path);
+      urlImg = await uploadImg(image.buffer);
       if (urlImg === false) {
         res.status(500).json({ msg: "server error" });
         return;

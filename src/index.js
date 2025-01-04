@@ -32,12 +32,7 @@ adminRouter(app);
 addressRouter(app);
 bannerRouter(app);
 
-// const port = process.env.PORT
-
-mongoose.connect(process.env.MONGO_DB, { 
-  useNewUrlParser: true, 
-  useUnifiedTopology: true 
-})
+mongoose.connect(process.env.MONGO_DB)
   .then(() => {
     console.log('Connect DB successfully')
   })
@@ -45,14 +40,13 @@ mongoose.connect(process.env.MONGO_DB, {
     console.log('Error connect to DB: ', error)
   })
 
-// app.get('/', (req, res) => { res.send('welcome to mọt store') })
-
-// app.listen(port, () => {
-//   console.log('Server is running in port: ', port)
-// })
-
 app.get('/', (req, res) => {
   res.send('Welcome to mọt store');
 });
 
 module.exports = app;
+
+// const port = process.env.PORT
+// app.listen(port, () => {
+//   console.log('Server is running in port: ', port)
+// })
