@@ -41,8 +41,15 @@ mongoose.connect(process.env.MONGO_DB)
   .catch((error) => {
     console.log('Error connect to DB: ', error)
   })
-app.get('/', (req, res) => { res.send('welcome to mọt store') })
 
-app.listen(port, () => {
-  console.log('Server is running in port: ', port)
-})
+// app.get('/', (req, res) => { res.send('welcome to mọt store') })
+
+// app.listen(port, () => {
+//   console.log('Server is running in port: ', port)
+// })
+
+app.get('/', (req, res) => {
+  res.send('Welcome to mọt store');
+});
+
+module.exports = app;
