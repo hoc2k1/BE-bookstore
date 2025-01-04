@@ -32,9 +32,12 @@ adminRouter(app);
 addressRouter(app);
 bannerRouter(app);
 
-const port = process.env.PORT
+// const port = process.env.PORT
 
-mongoose.connect(process.env.MONGO_DB)
+mongoose.connect(process.env.MONGO_DB, { 
+  useNewUrlParser: true, 
+  useUnifiedTopology: true 
+})
   .then(() => {
     console.log('Connect DB successfully')
   })
