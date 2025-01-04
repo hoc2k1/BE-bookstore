@@ -47,7 +47,7 @@ exports.getAllBook = async (req, res) => {
       let publisherIds = []
       const publishers = await publisher.find({ name: new RegExp(searchText, "i") });
       publisherIds = publishers.map(publisher => publisher._id);
-      filter = publisherIds.length > 0 ? { id_publisher: { $in: publisherIds } } : {};
+      const filter = publisherIds.length > 0 ? { id_publisher: { $in: publisherIds } } : {};
       conditions.push(filter)
     }
     else {
@@ -59,7 +59,7 @@ exports.getAllBook = async (req, res) => {
       let authorIds = []
       const authors = await author.find({ name: new RegExp(searchText, "i") });
       authorIds = authors.map(author => author._id);
-      filter = authorIds.length > 0 ? { id_author: { $in: authorIds } } : {};
+      const filter = authorIds.length > 0 ? { id_author: { $in: authorIds } } : {};
       conditions.push(filter)
     }
     else {
@@ -71,7 +71,7 @@ exports.getAllBook = async (req, res) => {
       let categoriesIds = []
       const categoryies = await category.find({ name: new RegExp(searchText, "i") });
       categoriesIds = categoryies.map(category => category._id);
-      filter = categoriesIds.length > 0 ? { id_category: { $in: categoriesIds } } : {};
+      const filter = categoriesIds.length > 0 ? { id_category: { $in: categoriesIds } } : {};
       conditions.push(filter)
     }
     else {
