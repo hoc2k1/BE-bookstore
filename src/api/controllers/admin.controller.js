@@ -50,7 +50,7 @@ exports.addBook = async (req, res) => {
     typeof req.body.price === "undefined" ||
     typeof req.body.release_date === "undefined" ||
     typeof req.body.describe === "undefined" ||
-    typeof req.body.id_nsx === "undefined" ||
+    typeof req.body.id_publisher === "undefined" ||
     typeof req.body.id_author === "undefined"
   ) {
     res.status(422).json({ msg: "Invalid data" });
@@ -62,7 +62,7 @@ exports.addBook = async (req, res) => {
     price,
     release_date,
     describe,
-    id_nsx,
+    id_publisher,
     id_author,
   } = req.body;
   let urlImg = await uploadImg(req.file.buffer);
@@ -77,7 +77,7 @@ exports.addBook = async (req, res) => {
     release_date: release_date,
     img: urlImg,
     describe: describe,
-    id_nsx: id_nsx,
+    id_publisher: id_publisher,
     id_author: id_author,
   });
   try {
@@ -572,7 +572,7 @@ exports.getRevenue = async (req, res) => {
     
         for (let product of item.products) {
           const categoryFind = await category.findById(product.id_category);
-          const publisherFind = await publisher.findById(product.id_nsx);
+          const publisherFind = await publisher.findById(product.id_publisher);
           const authorFind = await author.findById(product.id_author);
     
           const updatedProduct = {

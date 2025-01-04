@@ -19,7 +19,7 @@ const cart = new Schema({
         release_date: Date,
         img: Array,
         describe: String,
-        id_nsx: String,
+        id_publisher: String,
         id_author: String,
         count: Number,
         sales: Number,

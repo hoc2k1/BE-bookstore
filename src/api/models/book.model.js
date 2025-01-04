@@ -35,7 +35,7 @@ const book = new Schema({
     type: String,
     default: "",
   },
-  id_nsx: {
+  id_publisher: {
     type: String,
     required: [true, "can't be blank"],
   },

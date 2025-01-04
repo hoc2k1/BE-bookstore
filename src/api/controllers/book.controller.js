@@ -40,7 +40,7 @@ exports.getAllBook = async (req, res) => {
     conditions.push({ name: new RegExp(searchText, "i") })
   }
   if (searchPublisher) {
-    conditions.push({ id_nsx: { $in: searchPublisher } })
+    conditions.push({ id_publisher: { $in: searchPublisher } })
   }
   if (searchAuthor) {
     conditions.push({ id_author: { $in: searchAuthor } })
@@ -240,7 +240,7 @@ exports.getRelatedBook = async (req, res) => {
     const releatedBooksByPublisher = await book
       .find({
         $and: [
-          { id_nsx: bookObj.id_nsx },
+          { id_publisher: bookObj.id_publisher },
           { _id: { $nin: [bookId] } }
         ]
       })
@@ -248,7 +248,7 @@ exports.getRelatedBook = async (req, res) => {
       .sort({ release_date: -1 });
     const releatedBooksByPublisherCount = await book.countDocuments({
       $and: [
-        { id_nsx: bookObj.id_nsx },
+        { id_publisher: bookObj.id_publisher },
         { _id: { $nin: [bookId] } }
       ]
     })

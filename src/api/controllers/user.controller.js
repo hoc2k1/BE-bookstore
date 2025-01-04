@@ -4,7 +4,6 @@ const nodemailer = require("../utils/nodemailer");
 const randomstring = require("randomstring");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const otp = require("../utils/otp");
 
 const secret_key="mot_store"
 
