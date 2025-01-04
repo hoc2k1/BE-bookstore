@@ -32,7 +32,7 @@ adminRouter(app);
 addressRouter(app);
 bannerRouter(app);
 
-// const port = process.env.PORT
+const port = process.env.PORT
 
 mongoose.connect(process.env.MONGO_DB)
   .then(() => {
@@ -43,6 +43,6 @@ mongoose.connect(process.env.MONGO_DB)
   })
 app.get('/', (req, res) => { res.send('welcome to mọt store') })
 
-// app.listen(port, () => {
-//   console.log('Server is running in port: ', port)
-// })
+app.listen(port, () => {
+  console.log('Server is running in port: ', port)
+})
