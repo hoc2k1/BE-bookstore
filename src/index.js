@@ -14,7 +14,6 @@ const cartRouter = require('./api/routers/cart.router');
 const adminRouter = require('./api/routers/admin.router');
 const addressRouter = require('./api/routers/address.router');
 const bannerRouter = require('./api/routers/banner.router');
-const homeRouter = require('./api/routers/home.router');
 
 dotenv.config();
 const app = express();
@@ -32,40 +31,6 @@ cartRouter(app);
 adminRouter(app);
 addressRouter(app);
 bannerRouter(app);
-homeRouter(app);
-
-const test = () => {
-  Object.keys(data).forEach(function (k) {
-    var _dic = [];
-    var _ward = [];
-    Object.keys(data[k].district).forEach(function (j) {
-      Object.keys(data[k].district[j].ward).forEach(function (l) {
-        _ward.push({
-          name: data[k].district[j].ward[l].name,
-          code: data[k].district[j].ward[l].code,
-        })
-      });
-      _dic.push({
-        name: data[k].district[j].name,
-        code: data[k].district[j].code,
-        ward: _ward
-      })
-
-    });
-    const new_address = new address({
-      city: data[k].name,
-      district: _dic,
-      code: data[k].code
-    })
-    try {
-      new_address.save()
-    }
-    catch (Err) {
-      console.log(Err)
-    }
-  });
-}
-// test();
 
 const port = process.env.PORT
 
@@ -76,7 +41,7 @@ mongoose.connect(process.env.MONGO_DB)
   .catch((error) => {
     console.log('Error connect to DB: ', error)
   })
-app.get('/', (req, res) => { res.send('welcome to fashtion_book') })
+app.get('/', (req, res) => { res.send('welcome to mọt store') })
 
 app.listen(port, () => {
   console.log('Server is running in port: ', port)
