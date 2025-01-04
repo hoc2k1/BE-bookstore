@@ -1,5 +1,8 @@
 'use strict'
 const book = require('../models/book.model');
+const category = require("../models/category.model");
+const author = require("../models/author.model");
+const publisher = require("../models/publisher.model");
 const NUMBER_BOOK_PER_PAGE = 24
 const NUMBER_RELATED_BOOK = 8
 
@@ -40,13 +43,40 @@ exports.getAllBook = async (req, res) => {
     conditions.push({ name: new RegExp(searchText, "i") })
   }
   if (searchPublisher) {
-    conditions.push({ id_publisher: { $in: searchPublisher } })
+    if (req.body.isAdmin) {
+      let publisherIds = []
+      const publishers = await publisher.find({ name: new RegExp(searchText, "i") });
+      publisherIds = publishers.map(publisher => publisher._id);
+      filter = publisherIds.length > 0 ? { id_publisher: { $in: publisherIds } } : {};
+      conditions.push(filter)
+    }
+    else {
+      conditions.push({ id_publisher: { $in: searchPublisher } })
+    }
   }
   if (searchAuthor) {
-    conditions.push({ id_author: { $in: searchAuthor } })
+    if (req.body.isAdmin) {
+      let authorIds = []
+      const authors = await author.find({ name: new RegExp(searchText, "i") });
+      authorIds = authors.map(author => author._id);
+      filter = authorIds.length > 0 ? { id_author: { $in: authorIds } } : {};
+      conditions.push(filter)
+    }
+    else {
+      conditions.push({ id_author: { $in: searchAuthor } })
+    }
   }
   if (searchCategory) {
-    conditions.push({ id_category: { $in: searchCategory } })
+    if (req.body.isAdmin) {
+      let categoriesIds = []
+      const categoryies = await category.find({ name: new RegExp(searchText, "i") });
+      categoriesIds = categoryies.map(category => category._id);
+      filter = categoriesIds.length > 0 ? { id_category: { $in: categoriesIds } } : {};
+      conditions.push(filter)
+    }
+    else {
+      conditions.push({ id_category: { $in: searchCategory } })
+    }
   }
 
   //Sap xep
