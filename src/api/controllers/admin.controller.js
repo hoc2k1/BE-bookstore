@@ -587,6 +587,9 @@ exports.getRevenue = async (req, res) => {
     const start = new Date(startDate);
     const end = new Date(endDate);
 
+    start.setDate(start.getDate() + 1);
+    end.setDate(end.getDate() + 1);
+
     const completedBills = await bill.find({
       status: constants.billStatus.complete,
       date_create: {
