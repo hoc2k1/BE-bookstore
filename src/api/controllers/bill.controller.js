@@ -177,9 +177,6 @@ exports.updateBill = async (req, res) => {
           billFind.name = name
         }
         if (status) {
-          if(billFind.status == constants.billStatus.complete && billFind.status != status) {
-            billFind.date_complete = new Date()
-          }
           if(billFind.status == constants.billStatus.cancel && billFind.status != status) {
             billFind.status = status
             await updateCountProducts({products: billFind.products, isCheckout: true})

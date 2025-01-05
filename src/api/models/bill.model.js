@@ -11,9 +11,6 @@ const bill = new Schema({
   date_create: {
     type: Date
   },
-  date_complete: {
-    type: Date
-  },
   products: {
     type: [
       {
