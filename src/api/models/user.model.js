@@ -22,7 +22,7 @@ const user = new Schema({
   is_admin: {
     type: Boolean,
     default: false,
-  }
+  },
   token: {
     type: String,
   },
