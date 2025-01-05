@@ -45,7 +45,6 @@ exports.register = async (req, res) => {
   password = bcrypt.hashSync(password, 10);
   const newUser = new user({
     email: email,
-    is_verify: true,
     is_admin: is_admin,
     firstName: firstName,
     lastName: lastName,
@@ -83,11 +82,6 @@ exports.login = async (req, res) => {
     return;
   }
 
-  if (!userFind.is_verify) {
-    res.status(401).json({ msg: "no_registration_confirmation" });
-    return;
-  }
-
   if (!bcrypt.compareSync(password, userFind.password)) {
     res.status(422).json({ msg: "Invalid data" });
     return;
@@ -111,7 +105,6 @@ exports.login = async (req, res) => {
       email: userFind.email,
       firstName: userFind.firstName,
       lastName: userFind.lastName,
-      is_verify: userFind.is_verify,
       id: userFind._id,
     },
   });
