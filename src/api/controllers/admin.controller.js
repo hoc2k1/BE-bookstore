@@ -19,7 +19,7 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const streamifier = require('streamifier');
 const secret_key="mot_store"
-const LIMIT = 2;
+const LIMIT = 20;
 const fs = require("fs");
 
 const uploadImg = async (fileBuffer) => {
@@ -658,4 +658,19 @@ exports.getBills = async (req, res) => {
     res.status(500).json({ msg: "Server error" });
     return;
   }
+}
+
+exports.deleteBill = async (req, res) => {
+  if (typeof req.params.id === "undefined") {
+    res.status(422).json({ msg: "Invalid data" });
+    return;
+  }
+  try {
+    await bill.findByIdAndDelete(req.params.id);
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ msg: err });
+    return;
+  }
+  res.status(200).json({ msg: "success" });
 }

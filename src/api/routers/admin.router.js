@@ -35,4 +35,6 @@ module.exports = (app) => {
     .post(admin_controller.getRevenue);
   app.route('/admin/bills')
     .post(admin_controller.getBills)
+  app.route('/admin/deletebill/:id')
+    .get(admin_controller.deleteBill)
 }

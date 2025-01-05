@@ -126,7 +126,7 @@ exports.checkout = async (req, res) => {
           try {
             billFind.status = constants.billStatus.wait_accept
             billFind.date_create = new Date()
-            await updateCountProducts({products: billFind.products});
+            await updateCountProducts({products: billFind.products, isCheckout: true});
             await billFind.save()
             res.status(200).json({data: billFind})
           }
@@ -177,9 +177,15 @@ exports.updateBill = async (req, res) => {
           billFind.name = name
         }
         if (status) {
-          billFind.status = status
-          if (status == constants.billStatus.cancel) {
-            await updateCountProducts({products: billFind.products, isCheckout: false})
+          if(billFind.status == constants.billStatus.cancel && billFind.status != status) {
+            billFind.status = status
+            await updateCountProducts({products: billFind.products, isCheckout: true})
+          }
+          else {
+            billFind.status = status
+            if (status == constants.billStatus.cancel) {
+              await updateCountProducts({products: billFind.products, isCheckout: false})
+            }
           }
         }
         await billFind.save()
