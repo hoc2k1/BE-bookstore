@@ -589,7 +589,7 @@ exports.getRevenue = async (req, res) => {
 
     const completedBills = await bill.find({
       status: constants.billStatus.complete,
-      date_complete: {
+      date_create: {
         $gte: start,
         $lte: end,
       },
