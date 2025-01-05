@@ -6,9 +6,9 @@ const upload = multer({ storage });
 
 module.exports = (app) => {
   app.route('/admin/addbook')
-    .post(upload.single('file'), admin_controller.addBook);
+    .post(upload.array('files', 10), admin_controller.addBook);
   app.route('/admin/updatebook')
-    .post(upload.single('file'), admin_controller.updateBook);
+    .post(upload.array('files', 10), admin_controller.updateBook);
   app.route('/admin/deletebook/:id')
     .get(admin_controller.deletebook);
   app.route('/admin/deleteuser/:id')

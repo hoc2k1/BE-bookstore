@@ -42,69 +42,76 @@ const uploadImg = async (fileBuffer) => {
     streamifier.createReadStream(fileBuffer).pipe(uploadStream);
   });
 };
-exports.addBook = async (req, res) => {
+exports.addBook = async (req, res) => {  
   if (
-    typeof req.file === "undefined" ||
-    typeof req.body.name === "undefined" ||
-    typeof req.body.id_category === "undefined" ||
-    typeof req.body.price === "undefined" ||
-    typeof req.body.release_date === "undefined" ||
-    typeof req.body.describe === "undefined" ||
-    typeof req.body.id_publisher === "undefined" ||
-    typeof req.body.id_author === "undefined"
+    !req.body.name
   ) {
     res.status(422).json({ msg: "Invalid data" });
     return;
   }
   const {
-    id_category,
-    name,
-    price,
-    release_date,
-    describe,
-    id_publisher,
-    id_author,
+    name, id, id_category, price, describe, images, id_author, count, available, id_publisher, sales
   } = req.body;
-  let urlImg = await uploadImg(req.file.buffer);
-  if (urlImg === false) {
-    res.status(500).json({ msg: "server error" });
-    return;
-  }
-  const newBook = new book({
-    id_category: id_category,
-    name: name,
-    price: price,
-    release_date: release_date,
-    img: urlImg,
-    describe: describe,
-    id_publisher: id_publisher,
-    id_author: id_author,
-  });
+  let files = req.files
+  let img = images ? (Array.isArray(images) ? images : [images]) : []
+
+  let bookFind
   try {
-    newBook.save();
+    bookFind = await book.find({ name: name });
   } catch (err) {
-    res.status(500).json({ msg: "server error" });
+    res.status(500).json({ msg: err });
     return;
   }
-  fs.unlink(req.file.buffer, (err) => {
-    if (err) throw err;
-  });
-  res.status(201).json({ msg: "success" });
+  if (bookFind.length > 0) {
+    res.status(200).json({ error: "Tên sách đã tồn tại!" });
+    return;
+  }
+  else {
+    if (files) {
+      for (const file of files) {
+        const urlImg = await uploadImg(file.buffer);
+        if (urlImg === false) {
+          res.status(500).json({ msg: "Lỗi server" });
+          return;
+        }
+        img.push(urlImg);
+      }
+    }
+    const newBook = new book({
+      name: name,
+      id_category: id_category,
+      id_author: id_author,
+      id_publisher: id_publisher,
+      release_date: new Date(),
+      price: parseInt(price),
+      sales: parseInt(sales),
+      describe: describe,
+      img: img,
+      available: available,
+      count: count,
+    });
+    try {
+      await newBook.save();
+    } catch (err) {
+      console.log(err);
+      res.status(500).json({ msg: err });
+      return;
+    }
+    res.status(200).json({ msg: "success" });
+  }
 };
 exports.updateBook = async (req, res) => {
   if (
-    typeof req.body.name === "undefined" ||
-    typeof req.body.id === "undefined" ||
-    typeof req.body.id_category === "undefined" ||
-    typeof req.body.price === "undefined" ||
-    typeof req.body.release_date === "undefined" ||
-    typeof req.body.describe === "undefined"
+    !req.body.name ||
+    !req.body.id
   ) {
     res.status(422).json({ msg: "Invalid data" });
     return;
   }
-  let { name, id, id_category, price, release_date, describe, category } =
+  let { name, id, id_category, price, describe, images, id_author, count, available, id_publisher, sales } =
     req.body;
+  let files = req.files
+  let img = images ? (Array.isArray(images) ? images : [images]) : []
   let bookFind;
   try {
     bookFind = await book.findById(id);
@@ -127,22 +134,47 @@ exports.updateBook = async (req, res) => {
       return;
     }
   }
-  if (urlImg === null) urlImg = bookFind.img;
-
-  bookFind.id_category = id_category;
-  bookFind.name = name;
-  bookFind.price = parseFloat(price);
-  bookFind.release_date = release_date;
-  bookFind.describe = describe;
-  bookFind.category = category;
-  bookFind.img = urlImg;
-  bookFind.save((err, docs) => {
-    if (err) {
-      console.log(err);
+  let bookFind1
+  try {
+    bookFind1 = await book.find({ name: name });
+  } catch (err) {
+    res.status(500).json({ msg: err });
+    return;
+  }
+  if (bookFind1.length > 0 && !(bookFind1.length == 1 && bookFind1[0].id == id)) {
+    res.status(200).json({ error: "Tên sách đã tồn tại!" });
+    return;
+  }
+  else {
+    if (files) {
+      for (const file of files) {
+        const urlImg = await uploadImg(file.buffer);
+        if (urlImg === false) {
+          res.status(500).json({ msg: "Lỗi server" });
+          return;
+        }
+        img.push(urlImg);
+      }
     }
-  });
-
-  res.status(200).json({ msg: "success", data: bookFind });
+    bookFind.name = name;
+    bookFind.id_category = id_category;
+    bookFind.id_author = id_author;
+    bookFind.id_publisher = id_publisher;
+    bookFind.price = parseInt(price);
+    bookFind.sales = parseInt(sales);
+    bookFind.describe = describe;
+    bookFind.img = img;
+    bookFind.available = available;
+    bookFind.count = count;
+    try {
+      await bookFind.save();
+    } catch (err) {
+      console.log(err);
+      res.status(500).json({ msg: err });
+      return;
+    }
+    res.status(200).json({ msg: "success" });
+  }
 };
 
 exports.deletebook = async (req, res) => {
@@ -150,7 +182,6 @@ exports.deletebook = async (req, res) => {
     res.status(422).json({ msg: "Invalid data" });
     return;
   }
-  let bookFind;
   try {
     await book.findByIdAndDelete(req.params.id);
   } catch (err) {
@@ -330,7 +361,6 @@ exports.updateCategory = async (req, res) => {
   }
   else {
     let urlImg = ''
-    console.log(1, image)
     if (image) {
       urlImg = await uploadImg(image.buffer);
       if (urlImg === false) {
@@ -596,7 +626,6 @@ exports.getRevenue = async (req, res) => {
       totalRevenue: totalRevenue,
     });
   } catch (err) {
-    console.log(24, err)
     res.status(500).json({ msg: "An error occurred", error: err.message });
   }
 }
