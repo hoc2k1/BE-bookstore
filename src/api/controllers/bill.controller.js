@@ -57,7 +57,7 @@ exports.findBillOrAddBill = async (req, res) => {
     res.status(422).json({ msg: "Invalid data" });
     return;
   }
-  const { id_user, products, total, subtotal, discount, status } = req.body;
+  const { id_user, products, total, subtotal, discount, status, packTotal } = req.body;
   var billFind = null;
   try {
     billFind = await bill.findOne({ id_user: id_user, status: constants.billStatus.pending });
@@ -66,6 +66,7 @@ exports.findBillOrAddBill = async (req, res) => {
       if (checkCanOrder) {
         billFind.products = products;
         billFind.total = total;
+        billFind.packTotal = packTotal;
         billFind.subtotal = subtotal;
         billFind.discount = discount;
         try {
@@ -93,6 +94,7 @@ exports.findBillOrAddBill = async (req, res) => {
         products: products,
         payment_method : constants.paymentMethod.cod,
         total: total,
+        packTotal: packTotal,
         status: status,
         subtotal: subtotal,
         discount: discount

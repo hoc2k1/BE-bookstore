@@ -20,6 +20,7 @@ const cart = new Schema({
         img: Array,
         describe: String,
         id_publisher: String,
+        is_package: Boolean,
         id_author: String,
         count: Number,
         sales: Number,

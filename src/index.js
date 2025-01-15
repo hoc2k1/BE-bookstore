@@ -46,7 +46,7 @@ app.get('/', (req, res) => {
 
 module.exports = app;
 
-// const port = process.env.PORT
-// app.listen(port, () => {
-//   console.log('Server is running in port: ', port)
-// })
+const port = process.env.PORT
+app.listen(port, () => {
+  console.log('Server is running in port: ', port)
+})

@@ -33,11 +33,11 @@ exports.addToCart = async (req, res) => {
     const productChecked = []
     let availableProducts = await Promise.all(
       newProducts.map(async (item) => {
-        const itemInOldProduct = oldProducts.find(item1 => item1._id === item._id);
+        const itemInOldProduct = oldProducts.find(item1 => item1._id === item._id && item1.is_package == item.is_package);
         let newCount = item.count
         if (itemInOldProduct) {
           newCount += itemInOldProduct.count
-          productChecked.push(item._id)
+          productChecked.push(item._id + item.is_package.toString())
         }
         const book_item = await book.findById(item._id);
         if (newCount <= book_item.count) {
@@ -53,7 +53,7 @@ exports.addToCart = async (req, res) => {
     );
 
     const remainingOldProducts = oldProducts
-      .filter((item) => !productChecked.includes(item._id))
+      .filter((item) => !productChecked.includes(item._id + item.is_package.toString()))
       .map((item) => item);
 
     availableProducts = [...availableProducts, ...remainingOldProducts].filter((item) => item !== null);

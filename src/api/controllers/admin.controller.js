@@ -584,11 +584,14 @@ exports.getRevenue = async (req, res) => {
   }
 
   try {
-    const start = new Date(startDate);
-    const end = new Date(endDate);
+    const adjustToVietnamTime = (date) => {
+      return new Date(date.getTime() + 7 * 60 * 60 * 1000);
+    };
+    let start = new Date(startDate);
+    let end = new Date(endDate);
 
-    start.setDate(start.getDate() + 1);
-    end.setDate(end.getDate() + 1);
+    start = adjustToVietnamTime(start);
+    end = adjustToVietnamTime(end);
 
     const completedBills = await bill.find({
       status: constants.billStatus.complete,
