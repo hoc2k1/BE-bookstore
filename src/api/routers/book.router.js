@@ -9,4 +9,7 @@ module.exports = (app) => {
 
   app.route('/book/related/:bookId')
     .get(book_controller.getRelatedBook)
+
+  app.route('/book/bestselling')
+    .post(book_controller.bestSelling)
 }

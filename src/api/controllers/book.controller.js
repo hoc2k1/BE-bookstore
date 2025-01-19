@@ -1,10 +1,13 @@
 'use strict'
 const book = require('../models/book.model');
+const bill = require('../models/bill.model');
 const category = require("../models/category.model");
 const author = require("../models/author.model");
 const publisher = require("../models/publisher.model");
 const NUMBER_BOOK_PER_PAGE = 24
 const NUMBER_RELATED_BOOK = 8
+const constants = require("../../contants")
+const NUMBER_BEST_SELLING = 10
 
 exports.getAllBook = async (req, res) => {
   if ((typeof req.body.page === 'undefined')) {
@@ -230,6 +233,42 @@ exports.getBookByID = async (req, res) => {
       console.error('Error saving document:', error);
     });
   res.status(200).json({ data: result })
+}
+
+exports.bestSelling = async (req, res) => {
+  try {
+    const completedBills = await bill.find({
+      status: constants.billStatus.complete,
+    });
+    let productSales = [];
+    completedBills.forEach(order => {
+      order.products.forEach(product => {
+        if (productSales[product._id]) {
+          productSales[product._id].selling_count += product.count;
+        } else {
+          productSales[product._id] = {
+            selling_count: product.count,
+            product: product
+          };
+        }
+      });
+    });
+  
+    const sortedSales = Object.values(productSales).sort((a, b) => b.selling_count - a.selling_count);
+    const productIds = sortedSales.map(item => item.product._id);
+    const bookFinds = await book.find({ _id: { $in: productIds } });
+
+    const newSortedSales = productIds
+      .map(id => bookFinds.find(book => book._id.toString() === id.toString()))
+      .filter(book => book);
+    const limitedTopSellingProducts = newSortedSales.length > 10 ? newSortedSales.slice(0, NUMBER_BEST_SELLING) : newSortedSales;
+    res.status(200).json({ data: limitedTopSellingProducts, msg: 'Invalid bookId' });
+  }
+  catch (err) {
+    console.log(err)
+    res.status(500).json({ msg: err })
+    return;
+  }
 }
 
 exports.getRelatedBook = async (req, res) => {
